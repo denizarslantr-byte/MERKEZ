@@ -2,153 +2,305 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Piano Deri — Bölgeci</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Piano Deri — Yönetici</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#0a0a14;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#f0f0f0;font-size:13px}
-    .brand{text-align:center;padding:16px 14px 10px}
-    .brand .p{font-family:Georgia,serif;color:#f1d48a;font-size:38px;line-height:.7}
-    .brand .n{font-family:Georgia,serif;letter-spacing:5px;font-size:20px;margin-top:4px}
-    .brand .s{color:#d8aa4b;letter-spacing:4px;font-size:9px;margin-top:3px}
-    .topbar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(18,19,24,.95);border-top:1px solid rgba(216,170,75,.15);border-bottom:1px solid rgba(216,170,75,.15)}
-    .tbtn{background:rgba(30,31,40,.9);border:1px solid rgba(255,255,255,.1);color:#aaa;border-radius:6px;padding:6px 11px;font-size:11px;cursor:pointer}
-    .tbtn.gold{background:rgba(216,170,75,.15);border-color:rgba(216,170,75,.4);color:#f1d48a;font-weight:700}
-    .tbtn:active{opacity:.7}
-    .date-lbl{flex:1;text-align:center;font-size:13px;font-weight:700;color:#f1d48a}
-    .refresh{background:rgba(216,170,75,.12);border:1px solid rgba(216,170,75,.3);color:#f1d48a;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
-    .refresh.spin{animation:spin .6s linear infinite}
+    :root{--gold:#d8aa4b;--gold2:#f1d48a;--gold3:#a07830;--bg:#080808;--bg2:rgba(18,19,24,.98);--bg3:rgba(28,29,34,.95);--text:#f0f0f0;--text2:#9a9a9a;--b:rgba(216,170,75,.3);--b2:rgba(255,255,255,.08)}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:14px;min-height:100vh;overscroll-behavior:none}
+
+    /* Header */
+    .hdr{background:var(--bg2);border-bottom:1px solid var(--b);padding:14px 16px 12px;position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+    .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .brand{display:flex;align-items:center;gap:9px}
+    .brand .p{font-family:Georgia,serif;color:var(--gold2);font-size:28px;line-height:1}
+    .brand .n{font-family:Georgia,serif;color:var(--text);font-size:13px;letter-spacing:2px}
+    .brand .s{color:var(--gold);font-size:9px;letter-spacing:2px}
+    .rbtn{background:rgba(216,170,75,.12);border:1px solid var(--b);color:var(--gold2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+    .rbtn:active{background:rgba(216,170,75,.28)}
+    .rbtn.spin{animation:spin .6s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    #hdInput{position:absolute;opacity:0;width:0;height:0}
-    .summary{font-size:11px;color:#666;padding:6px 14px;background:rgba(10,10,20,.8);border-bottom:1px solid rgba(255,255,255,.05)}
-    .content{padding:10px 12px 60px}
-    /* Otel kartı */
-    .hcard{background:rgba(20,21,30,.95);border:1px solid rgba(255,255,255,.07);border-radius:12px;margin-bottom:8px;overflow:hidden}
-    .hhdr{padding:9px 12px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,255,255,.05)}
-    .hname{font-size:12px;font-weight:700;color:#f1d48a;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    /* Başlık rozetleri */
-    .hbs{display:flex;gap:3px}
-    .hb{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;border:1.5px solid}
-    .hbi{background:rgba(234,179,8,.2);border-color:rgba(234,179,8,.6);color:#fde68a}
-    .hbc{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.6);color:#4ade80}
-    .hbs2{background:rgba(56,189,248,.2);border-color:rgba(56,189,248,.6);color:#7dd3fc}
-    /* Rezervasyon satırı */
-    .rrow{display:flex;align-items:stretch;border-bottom:1px solid rgba(255,255,255,.04);min-height:42px}
-    .rrow:last-child{border-bottom:0}
-    /* Sol durum kutusu - tam yükseklik */
-    .rst{width:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border-right:1px solid rgba(255,255,255,.06)}
-    .rp{background:rgba(30,41,55,.4);color:#4b5563}
-    .ri{background:rgba(234,179,8,.2);color:#fde68a}
-    .rc{background:rgba(34,197,94,.18);color:#4ade80}
-    .rx{background:rgba(239,68,68,.1);color:#f87171}
-    /* Satış kutusu */
-    .rsal{width:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;border-right:1px solid rgba(255,255,255,.06)}
-    .rson{background:rgba(56,189,248,.18);color:#7dd3fc}
-    /* İçerik */
-    .rbody{flex:1;padding:7px 10px;display:flex;align-items:center;gap:8px}
-    .rtime{font-size:14px;font-weight:900;color:#f1d48a;min-width:38px}
-    .rdet .rpax{font-size:12px;color:#f0f0f0;font-weight:600}
-    .rdet .rnat{font-size:10px;color:#777;margin-top:1px}
-    .nodata{padding:14px;text-align:center;color:#444;font-size:11px}
-    .load{text-align:center;padding:40px;color:#555}
-    .spin2{width:22px;height:22px;border:2px solid rgba(255,255,255,.08);border-top-color:#d8aa4b;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
-    .foot{text-align:center;font-size:10px;color:#444;padding:7px;position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.95);border-top:1px solid rgba(255,255,255,.06)}
+
+    /* Date nav */
+    .dnav{display:flex;align-items:center;gap:8px}
+    .darr{background:rgba(255,255,255,.06);border:1px solid var(--b2);color:var(--text2);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0}
+    .darr:active{background:rgba(255,255,255,.14)}
+    .dlbl{flex:1;text-align:center;cursor:pointer}
+    .dlbl .date{font-size:15px;font-weight:700;color:var(--gold2)}
+    .dlbl .day{font-size:10px;color:var(--text2);margin-top:1px}
+    .tbtn{background:rgba(216,170,75,.1);border:1px solid rgba(216,170,75,.3);color:var(--gold);border-radius:8px;padding:0 12px;height:36px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+    .tbtn:active{background:rgba(216,170,75,.22)}
+    #hd{position:absolute;opacity:0;width:0;height:0}
+
+    /* Summary */
+    .sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 14px}
+    .sc{background:var(--bg3);border:1px solid var(--b2);border-radius:14px;padding:12px 6px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+    .sc.active{border-color:var(--b);background:rgba(216,170,75,.08)}
+    .sc:active{background:rgba(255,255,255,.05)}
+    .sv{font-size:26px;font-weight:900;line-height:1.1;margin-bottom:2px}
+    .sl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+    .c0{color:var(--gold2)}.c1{color:#d1d5db}.c2{color:#fde68a}.c3{color:#bbf7d0}
+
+    /* Hotel filter */
+    .hfw{padding:0 14px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .hfw::-webkit-scrollbar{display:none}
+    .hf{display:flex;gap:7px;width:max-content}
+    .hc{background:rgba(255,255,255,.05);border:1px solid var(--b2);color:var(--text2);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s}
+    .hc.active{background:rgba(216,170,75,.14);border-color:var(--b);color:var(--gold2)}
+    .hc:active{opacity:.7}
+
+    /* Tabs */
+    .tabs{display:flex;padding:0 14px;border-bottom:1px solid var(--b2);margin-bottom:2px}
+    .tab{flex:1;text-align:center;padding:9px 4px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+    .tab.active{color:var(--gold2);border-bottom-color:var(--gold)}
+
+    /* List */
+    .list{padding:8px 14px 90px}
+    .empty{text-align:center;padding:52px 20px;color:var(--text2)}
+    .empty .ei{font-size:40px;margin-bottom:10px}
+    .grp-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding:10px 2px 5px;display:flex;align-items:center;gap:8px}
+    .grp-lbl::after{content:'';flex:1;height:1px;background:var(--b2)}
+
+    /* Card */
+    .rc{background:var(--bg3);border:1px solid var(--b2);border-radius:16px;padding:14px;margin-bottom:9px;position:relative;overflow:hidden;transition:border-color .15s}
+    .rc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+    .rc.pending::before{background:rgba(209,213,219,.45)}
+    .rc.inside::before{background:#fde68a}
+    .rc.done::before{background:#4ade80}
+    .rc.cancelled::before{background:#f87171}
+
+    .rt{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .rtime{font-size:22px;font-weight:900;color:var(--gold2);line-height:1}
+    .rhotel{font-size:13px;font-weight:700;margin-top:2px}
+    .rbadges{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+
+    .badge{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800}
+    .badge.pending{background:rgba(31,41,55,.8);color:#d1d5db;border:1px solid rgba(255,255,255,.1)}
+    .badge.inside{background:rgba(120,53,15,.8);color:#fde68a;border:1px solid rgba(251,191,36,.4)}
+    .badge.done{background:rgba(20,83,45,.8);color:#bbf7d0;border:1px solid rgba(34,197,94,.3)}
+    .badge.cancelled{background:rgba(127,29,29,.8);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
+    .badge.satis{background:rgba(234,179,8,.2);color:#fde68a;border:1px solid rgba(234,179,8,.5);font-size:10px}
+
+    .rbody{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+    .ri{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+    .ri b{color:var(--text)}
+    .ri span.ico{font-size:13px}
+    .rnote{grid-column:1/-1;font-size:11px;color:var(--text2);font-style:italic;margin-top:1px}
+    .rstaff{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+    .stag{background:rgba(255,255,255,.06);border:1px solid var(--b2);border-radius:999px;padding:3px 9px;font-size:11px;color:var(--text2)}
+
+    /* Loading */
+    .loading{display:flex;align-items:center;justify-content:center;padding:60px 20px;flex-direction:column;gap:14px;color:var(--text2);font-size:13px}
+    .spinner{width:28px;height:28px;border:2px solid var(--b2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+
+    /* Footer */
+    .footer{text-align:center;font-size:10px;color:var(--text2);padding:6px;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--b2);z-index:99}
   </style>
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#d8aa4b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PD Yönetici">
+  <link rel="apple-touch-icon" href="../icons/yonetici-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="../icons/yonetici-152.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="../icons/yonetici-144.png">
 </head>
 <body>
-<div class="brand">
-  <div class="p">P</div>
-  <div class="n">PIANO DERİ</div>
-  <div class="s">SUBBölgeci</div>
-</div>
-<div class="topbar">
-  <div class="tbtn" onclick="changeDay(-1)">◀</div>
-  <div class="date-lbl" id="dateLbl" onclick="document.getElementById('hdInput').click()"></div>
-  <div class="tbtn" onclick="changeDay(1)">▶</div>
-  <div class="tbtn gold" onclick="goToday()">Bugün</div>
-  <div class="refresh" id="rbtn" onclick="refresh()">↺</div>
-</div>
-<input type="date" id="hdInput" onchange="onDatePick()">
-<div class="summary" id="summary"></div>
-<div class="content" id="content"><div class="load"><div class="spin2"></div>Yükleniyor...</div></div>
-<div class="foot" id="foot"></div>
 
-<script src="../config/config.js"></script>
-<script src="../config/firebase.js"></script>
-<script src="../assets/common.js"></script>
-<script src="../assets/firebase-api.js"></script>
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="brand">
+      <div class="p">P</div>
+      <div><div class="n">PIANO DERİ</div><div class="s">YÖNETİCİ PANELİ</div></div>
+    </div>
+    <div class="rbtn" id="rbtn" onclick="refresh()">↺</div>
+  </div>
+  <div class="dnav">
+    <div class="darr" onclick="changeDay(-1)">‹</div>
+    <div class="dlbl" onclick="openPicker()">
+      <div class="date" id="dlbl"></div>
+      <div class="day"  id="dwlbl"></div>
+    </div>
+    <div class="darr" onclick="changeDay(1)">›</div>
+    <div class="tbtn" onclick="goToday()">Bugün</div>
+  </div>
+  <input type="date" id="hd" onchange="onPick()">
+</div>
+
+<div class="sum">
+  <div class="sc active" id="sc-all"     onclick="setF('all')">    <div class="sv c0" id="sv-all">—</div>    <div class="sl">Toplam</div></div>
+  <div class="sc"        id="sc-pending" onclick="setF('pending')"><div class="sv c1" id="sv-pending">—</div><div class="sl">Bekleyen</div></div>
+  <div class="sc"        id="sc-inside"  onclick="setF('inside')"> <div class="sv c2" id="sv-inside">—</div> <div class="sl">İçeride</div></div>
+  <div class="sc"        id="sc-done"    onclick="setF('done')">   <div class="sv c3" id="sv-done">—</div>   <div class="sl">Tamamlandı</div></div>
+</div>
+
+<div class="hfw"><div class="hf" id="hf"></div></div>
+
+<div class="list" id="list">
+  <div class="loading"><div class="spinner"></div>Yükleniyor...</div>
+</div>
+
+<div class="footer" id="footer"></div>
+
+<script src="../config/config.js?v=20260515-google-sheet-kapat-fix"></script>
+<script src="../config/firebase.js?v=20260515-google-sheet-kapat-fix"></script>
+<script src="../assets/common.js?v=20260515-google-sheet-kapat-fix"></script>
+<script src="../assets/firebase-api.js?v=20260515-google-sheet-kapat-fix"></script>
 <script>
-const DAYS=["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
-let curDate=todayStr(),all=[];
+const DAYS = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+let curDate = todayStr(), all = [], activeF = 'all', activeH = 'all';
 
-function fmt(iso){if(!iso)return"";const p=iso.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
-function updHdr(){const d=new Date(curDate+"T00:00:00");document.getElementById("dateLbl").innerText=fmt(curDate)+" — "+DAYS[d.getDay()];hdInput.value=curDate;}
-function changeDay(n){curDate=addDays(curDate,n);updHdr();load();}
-function goToday(){curDate=todayStr();updHdr();load();}
-function onDatePick(){if(hdInput.value){curDate=hdInput.value;updHdr();load();}}
-
-function st(r){
-  if(r.status==="CANCELLED")return"x";
-  if(String(r.cikti).toUpperCase()==="TRUE")return"c";
-  if(String(r.girdi).toUpperCase()==="TRUE")return"i";
-  return"p";
+function fmt(iso) {
+  if (!iso) return '';
+  const p = iso.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
 }
 
-function render(){
-  const el=document.getElementById("content");
-  const byH={};
-  all.forEach(r=>{if(!byH[r.hotel])byH[r.hotel]=[];byH[r.hotel].push(r);});
-  const total=all.length,pax=all.reduce((s,r)=>s+(Number(r.adult)||0)+(Number(r.child)||0),0);
-  document.getElementById("summary").innerText=fmt(curDate)+" · "+total+" rezervasyon · "+pax+" pax";
-  if(!total){el.innerHTML='<div class="load" style="padding:40px"><div style="font-size:28px;margin-bottom:8px">📭</div>Bu tarihte rezervasyon yok.</div>';return;}
-  const hotels=Object.keys(byH).sort();
-  el.innerHTML=hotels.map(hotel=>{
-    const rv=byH[hotel].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
-    const hasI=rv.some(r=>st(r)==="i"),hasC=rv.some(r=>st(r)==="c");
-    const hasS=rv.some(r=>String(r.satis).toUpperCase()==="TRUE"&&st(r)==="c");
-    return '<div class="hcard">'+
-      '<div class="hhdr">'+
-        '<span style="font-size:13px">🏨</span>'+
-        '<span class="hname">'+hotel+'</span>'+
-        '<div class="hbs">'+
-          (hasI?'<div class="hb hbi">İ</div>':"")+
-          (hasC?'<div class="hb hbc">Ç</div>':"")+
-          (hasS?'<div class="hb hbs2">S</div>':"")+
-        '</div>'+
-      '</div>'+
-      rv.map(r=>{
-        const s=st(r),pax=(Number(r.adult)||0)+(Number(r.child)||0);
-        const isSatis=String(r.satis).toUpperCase()==="TRUE"&&s==="c";
-        const lbl={p:"",i:"İ",c:"Ç",x:"✕"}[s];
-        const cls={p:"rp",i:"ri",c:"rc",x:"rx"}[s];
-        return '<div class="rrow">'+
-          '<div class="rst '+cls+'">'+lbl+'</div>'+
-          '<div class="rsal '+( isSatis?"rson":"")+'">'+( isSatis?"S":"")+'</div>'+
-          '<div class="rbody">'+
-            '<div class="rtime">'+r.time+'</div>'+
-            '<div class="rdet">'+
-              '<div class="rpax">'+pax+' kişi</div>'+
-              '<div class="rnat">'+( r.nation||"—")+'</div>'+
-            '</div>'+
-          '</div>'+
-        '</div>';
-      }).join("")+
-    '</div>';
-  }).join("");
+function updateHdr() {
+  const d = new Date(curDate + 'T00:00:00');
+  dlbl.innerText  = fmt(curDate);
+  dwlbl.innerText = DAYS[d.getDay()];
+  hd.value = curDate;
 }
 
-async function load(){
-  document.getElementById("content").innerHTML='<div class="load"><div class="spin2"></div>Yükleniyor...</div>';
-  try{
-    const data=await apiGet("getReservations",{date:curDate});
-    all=Array.isArray(data)?data:[];
+function changeDay(n) { curDate = addDays(curDate, n); updateHdr(); load(); }
+function goToday()    { curDate = todayStr(); updateHdr(); load(); }
+function openPicker() { hd.click(); }
+function onPick()     { if (hd.value) { curDate = hd.value; updateHdr(); load(); } }
+
+// ── Filtreler ────────────────────────────────────────────────
+function setF(f) {
+  activeF = f;
+  ['all','pending','inside','done'].forEach(k =>
+    document.getElementById('sc-'+k).classList.toggle('active', k === f));
+  render();
+}
+
+function setH(h) {
+  activeH = h;
+  document.querySelectorAll('.hc').forEach(el =>
+    el.classList.toggle('active', el.dataset.h === h));
+  render();
+}
+
+function status(r) {
+  if (r.status === 'CANCELLED') return 'cancelled';
+  if (String(r.cikti).toUpperCase() === 'TRUE') return 'done';
+  if (String(r.girdi).toUpperCase() === 'TRUE')  return 'inside';
+  return 'pending';
+}
+
+function filtered() {
+  return all.filter(r => {
+    const st = status(r);
+    if (activeH !== 'all' && r.hotel !== activeH) return false;
+    if (activeF === 'pending' && st !== 'pending') return false;
+    if (activeF === 'inside'  && st !== 'inside')  return false;
+    if (activeF === 'done'    && st !== 'done')     return false;
+    return true;
+  });
+}
+
+// ── Render ───────────────────────────────────────────────────
+function badgeTxt(st) {
+  return {pending:'BEKLİYOR',inside:'İÇERİDE',done:'ÇIKTI',cancelled:'İPTAL'}[st]||'?';
+}
+
+function render() {
+  const list = filtered();
+  const el = document.getElementById('list');
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><div class="ei">📭</div>Rezervasyon bulunamadı.</div>`;
+    return;
+  }
+
+  const grouped = {};
+  list.forEach(r => { if (!grouped[r.time]) grouped[r.time]=[]; grouped[r.time].push(r); });
+
+  el.innerHTML = Object.keys(grouped).sort().map(t => {
+    const cards = grouped[t].map(r => {
+      const st = status(r);
+      const pax = (Number(r.adult)||0)+(Number(r.child)||0);
+      const staff = [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean);
+      const isSatis = String(r.satis).toUpperCase()==='TRUE' && st==='done';
+
+      return `<div class="rc ${st}">
+        <div class="rt">
+          <div>
+            <div class="rtime">${r.time}</div>
+            <div class="rhotel">${r.hotel}</div>
+          </div>
+          <div class="rbadges">
+            <span class="badge ${st}">${badgeTxt(st)}</span>
+            ${isSatis?'<span class="badge satis">💰 SATIŞ</span>':''}
+          </div>
+        </div>
+        <div class="rbody">
+          <div class="ri"><span class="ico">👥</span><b>${pax} kişi</b><span>(${r.adult}${Number(r.child)>0?'+'+r.child:''})</span></div>
+          <div class="ri"><span class="ico">🌍</span><b>${r.nation||'—'}</b></div>
+          ${r.kart?`<div class="ri"><span class="ico">💳</span><b>${r.kart}</b></div>`:''}
+          ${r.ciktiSaati&&st==='done'?`<div class="ri"><span class="ico">🕐</span><span>Çıkış: <b>${r.ciktiSaati}</b></span></div>`:''}
+          ${r.notes?`<div class="rnote">💬 ${r.notes}</div>`:''}
+          ${staff.length?`<div class="rstaff">${staff.map(n=>`<span class="stag">👤 ${firstName(n)}</span>`).join('')}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="grp-lbl">⏰ ${t} · ${grouped[t].length} rezervasyon</div>${cards}`;
+  }).join('');
+}
+
+function updateStats() {
+  sv_all.innerText     = all.length;
+  sv_pending.innerText = all.filter(r=>status(r)==='pending').length;
+  sv_inside.innerText  = all.filter(r=>status(r)==='inside').length;
+  sv_done.innerText    = all.filter(r=>status(r)==='done').length;
+}
+
+function renderHotelFilter() {
+  const hotels = [...new Set(all.map(r=>r.hotel).filter(Boolean))].sort();
+  hf.innerHTML = `<div class="hc active" data-h="all" onclick="setH('all')">Tüm Oteller</div>` +
+    hotels.map(h=>`<div class="hc" data-h="${h}" onclick="setH(this.dataset.h)">${h}</div>`).join('');
+  activeH = 'all';
+}
+
+// ── Data ─────────────────────────────────────────────────────
+async function load() {
+  list.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  try {
+    const data = await getReservations(curDate);
+    all = Array.isArray(data) ? data : [];
+    updateStats();
+    renderHotelFilter();
     render();
-    document.getElementById("foot").innerText="Son güncelleme: "+new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  }catch(e){document.getElementById("content").innerHTML='<div class="load"><div style="font-size:26px">⚠️</div>Bağlantı hatası.</div>';}
+    footer.innerText = 'Son güncelleme: ' +
+      new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="ei">⚠️</div>Bağlantı hatası. Tekrar deneyin.</div>';
+  }
 }
-async function refresh(){rbtn.classList.add("spin");await load();rbtn.classList.remove("spin");}
-updHdr();load();
-setInterval(load,30000);
+
+async function refresh() {
+  rbtn.classList.add('spin');
+  await load();
+  rbtn.classList.remove('spin');
+}
+
+updateHdr();
+load();
+setInterval(load, 30000);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('../sw.js', { scope: '../' })
+      .catch(e => console.log('SW error:', e));
+  });
+}
 </script>
 </body>
 </html>
