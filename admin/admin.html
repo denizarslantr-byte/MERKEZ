@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piano Deri Admin V6.0</title>
   <link rel="stylesheet" href="../assets/piano-theme.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;display:flex;align-items:center;justify-content:center;padding:14px; }
     .modal-box { background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:22px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto; }
@@ -64,6 +65,9 @@
         </div>
         <br>
         <button class="btn-gold" onclick="saveHotel()">+ Oteli Ekle</button>
+        <input type="file" id="hotelImportFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importHotelsExcel(event)">
+        <button class="btn-dark" onclick="document.getElementById('hotelImportFile').click()">📥 Excelden Otel İçe Aktar</button>
+        <button class="btn-dark" onclick="downloadHotelTemplate()">⬇ Otel Şablonu</button>
       </div>
 
       <div class="panel-card table-wrap">
@@ -206,10 +210,10 @@
   </div>
 </div>
 
-<script src="../config/config.js"></script>
-<script src="../config/firebase.js"></script>
-<script src="../assets/common.js"></script>
-<script src="../assets/firebase-api.js"></script>
+<script src="../config/config.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../config/firebase.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../assets/common.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
 <script>
 showApiWarning();
 
@@ -329,7 +333,7 @@ function renderHotels() {
           <td>
             <div style="display:flex;gap:5px">
               <button class="btn-blue btn-sm" onclick="openEditModal(${JSON.stringify(x).replace(/"/g,'&quot;')})">✏️ Düzelt</button>
-              <button class="btn-red  btn-sm" onclick="deleteHotel('${x.id}','${x.hotel.replace(/'/g,"\\'")}')">🗑 Sil</button>
+              <button class="btn-red  btn-sm" onclick="deleteHotelUI('${x.id || x._key}','${String(x.hotel||'').replace(/'/g,"\\'")}')">🗑 Sil</button>
             </div>
           </td>
         </tr>`)
@@ -369,14 +373,57 @@ async function saveEditHotel() {
   const acenta = editHotelAcenta.value.trim();
   const status = editHotelStatus.value;
   if (!name||!code||!pass) return showToast("Ad, kod ve şifre zorunlu","err");
-  await updateHotel(editHotelId, { hotel:name, code, password:pass, acentaCode:acenta, status });
+  await updateHotel(id, { hotel:name, code, password:pass, acentaCode:acenta, status });
   showToast("✅ Otel güncellendi"); closeModal(); loadHotels();
 }
 
-async function deleteHotel(id, name) {
+async function deleteHotelUI(id, name) {
+  if (!id || id === "undefined") return showToast("❌ Otel ID bulunamadı. Sayfayı yenileyip tekrar deneyin.", "err");
   if (!confirm(`"${name}" oteli kalıcı olarak silinsin mi?`)) return;
-  await deleteHotel(id);
-  showToast("Otel silindi"); loadHotels();
+  await window.deleteHotel(id);
+  showToast("Otel silindi");
+  await loadHotels();
+}
+
+function rowVal(row, names) {
+  for (const n of names) {
+    if (row[n] !== undefined && row[n] !== null && String(row[n]).trim() !== "") return String(row[n]).trim();
+  }
+  return "";
+}
+
+async function importHotelsExcel(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  if (typeof XLSX === "undefined") return showToast("Excel okuyucu yüklenemedi", "err");
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type:"array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:"" });
+  if (!rows.length) return showToast("Excel boş", "err");
+  let added = 0, skipped = 0;
+  for (const row of rows) {
+    const hotel = rowVal(row, ["Otel Adı","OTEL ADI","otel","hotel"]);
+    const code = rowVal(row, ["Kullanıcı Kodu","KULLANICI KODU","Kullanici Kodu","code"]);
+    const password = rowVal(row, ["Şifre","SIFRE","ŞİFRE","Sifre","password"]);
+    const acentaCode = rowVal(row, ["Acenta Kodu","ACENTA KODU","acentaCode"]);
+    const status = rowVal(row, ["Durum","DURUM","status"]) || "ACTIVE";
+    if (!hotel || !code || !password) { skipped++; continue; }
+    await addHotel({ hotel, code, password, acentaCode, status: status.toUpperCase() });
+    added++;
+  }
+  showToast(`✅ ${added} otel aktarıldı${skipped ? `, ${skipped} satır atlandı` : ""}`);
+  await loadHotels();
+}
+
+function downloadHotelTemplate() {
+  const headers = ["Otel Adı","Kullanıcı Kodu","Şifre","Acenta Kodu","Durum"];
+  const rows = [["Lara Hotel","PD001","1234","ACN-001","ACTIVE"]];
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Oteller");
+  XLSX.writeFile(wb, "otel-aktarim-sablonu.xlsx");
 }
 
 editModal.addEventListener("click", e => { if (e.target===editModal) closeModal(); });

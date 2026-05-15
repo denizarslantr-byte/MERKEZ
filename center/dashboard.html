@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../assets/piano-theme.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-  #newResNotif{position:fixed;bottom:20px;right:20px;background:rgba(20,83,45,.97);border:1px solid rgba(34,197,94,.6);border-radius:14px;padding:13px 18px;z-index:9998;min-width:260px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;cursor:pointer}
+  #newResNotif{position:fixed;bottom:20px;left:20px;background:rgba(20,83,45,.97);border:1px solid rgba(34,197,94,.6);border-radius:14px;padding:13px 18px;z-index:9998;min-width:260px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;cursor:pointer}
   #newResNotif .nr-title{font-size:13px;font-weight:800;color:#bbf7d0;margin-bottom:6px;display:flex;align-items:center;gap:7px}
   #newResNotif .nr-list{font-size:12px;color:#86efac;line-height:1.8}
   #newResNotif .nr-close{position:absolute;top:8px;right:10px;color:#86efac;font-size:14px;cursor:pointer;opacity:.7}
@@ -145,6 +145,9 @@
               <option value="GRUP2">GRUP2</option>
             </select>
             <button class="btn-gold" onclick="addStaffUI()">+ Ekle</button>
+            <input type="file" id="staffImportFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importStaffExcel(event)">
+            <button class="btn-dark" onclick="document.getElementById('staffImportFile').click()">📥 Excelden Personel İçe Aktar</button>
+            <button class="btn-dark" onclick="downloadStaffTemplate()">⬇ Personel Şablonu</button>
           </div>
           <div id="allStaffList"></div>
         </div>
@@ -247,10 +250,10 @@
   </div>
 </div>
 
-<script src="../config/config.js?v=20260515-google-sheet-kapat-fix"></script>
-<script src="../config/firebase.js?v=20260515-google-sheet-kapat-fix"></script>
-<script src="../assets/common.js?v=20260515-google-sheet-kapat-fix"></script>
-<script src="../assets/firebase-api.js?v=20260515-google-sheet-kapat-fix"></script>
+<script src="../config/config.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../config/firebase.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../assets/common.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
 <script>
 showApiWarning();
 
@@ -484,7 +487,7 @@ function renderStaffPanel() {
         ${gb}
         <span class="badge ${aktif?'exited':'cancelled'}">${aktif?"AKTİF":"PASİF"}</span>
         <button class="btn-blue btn-sm" onclick='openStaffModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>✏️ Düzelt</button>
-        <button class="btn-red  btn-sm" onclick="deleteStaffUI('${s.id}')">Sil</button>
+        <button class="btn-red  btn-sm" onclick="deleteStaffUI('${s.id || s._key}')">Sil</button>
       </div>`;
   }).join("") || '<div style="color:var(--text2)">Personel yok.</div>';
 
@@ -744,7 +747,47 @@ async function addStaffUI() {
   else showToast("❌ "+(r.message||"Hata"),"err");
 }
 
+function rowVal(row, names) {
+  for (const n of names) {
+    if (row[n] !== undefined && row[n] !== null && String(row[n]).trim() !== "") return String(row[n]).trim();
+  }
+  return "";
+}
+
+async function importStaffExcel(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  if (typeof XLSX === "undefined") return showToast("Excel okuyucu yüklenemedi", "err");
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type:"array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:"" });
+  if (!rows.length) return showToast("Excel boş", "err");
+  let added = 0, skipped = 0;
+  for (const row of rows) {
+    const name = rowVal(row, ["Ad Soyad","AD SOYAD","Personel","PERSONEL","name"]);
+    const grup = rowVal(row, ["Grup","GRUP","grup"]);
+    const status = rowVal(row, ["Durum","DURUM","status"]) || "ACTIVE";
+    if (!name) { skipped++; continue; }
+    await window._fbAPI.addStaff({ name, grup, status: status.toUpperCase() });
+    added++;
+  }
+  showToast(`✅ ${added} personel aktarıldı${skipped ? `, ${skipped} satır atlandı` : ""}`);
+  await loadAll();
+}
+
+function downloadStaffTemplate() {
+  const headers = ["Ad Soyad","Grup","Durum"];
+  const rows = [["Ali Veli","GRUP1","ACTIVE"]];
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Personel");
+  XLSX.writeFile(wb, "personel-aktarim-sablonu.xlsx");
+}
+
 async function deleteStaffUI(id) {
+  if (!id || id === "undefined") return showToast("❌ Personel ID bulunamadı. Sayfayı yenileyip tekrar deneyin.", "err");
   if (!confirm("Personel silinsin mi?")) return;
   await window._fbAPI.deleteStaff(id);
   showToast("Personel silindi");
@@ -1058,9 +1101,6 @@ function checkNewReservations(list) {
   // Yeni ID'leri blink listesine ekle — renderReservations halleder
   newOnes.forEach(r => blinkIds.add(String(r.id)));
 
-
-
-  setTimeout(closeNotif, 10000);
 }
 
 function closeNotif() {
@@ -1075,7 +1115,7 @@ function closeNotif() {
 function goToNewRes() {
   closeNotif();
   showSection("homeSection","mnHome");
-  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior:"smooth" }), 200);
+  setTimeout(() => window.scrollTo({ top: 0, behavior:"smooth" }), 200);
 }
 
 // Ses izni için ilk tıklamada başlat

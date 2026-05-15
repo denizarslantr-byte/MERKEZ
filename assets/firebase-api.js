@@ -95,11 +95,15 @@ async function addHotel(hotel) {
 }
 
 async function updateHotel(id, data) {
-  await fbUpdate(`oteller/${id}`, data);
+  const key = (id && id.value !== undefined) ? id.value : id;
+  if (!key || key === "undefined") throw new Error("Otel ID bulunamadı");
+  await fbUpdate(`oteller/${key}`, data);
 }
 
 async function deleteHotel(id) {
-  await fbRemove(`oteller/${id}`);
+  const key = (id && id.value !== undefined) ? id.value : id;
+  if (!key || key === "undefined") throw new Error("Otel ID bulunamadı");
+  await fbRemove(`oteller/${key}`);
 }
 
 async function loginHotel(code, password) {
@@ -122,16 +126,20 @@ async function getStaff() {
 
 async function addStaff(staff) {
   const id = Date.now();
-  await fbSet(`personel/${id}`, { ...staff, id, status: "ACTIVE", createdAt: new Date().toISOString() });
+  await fbSet(`personel/${id}`, { ...staff, id, status: staff.status || "ACTIVE", createdAt: new Date().toISOString() });
   return id;
 }
 
 async function updateStaff(id, data) {
-  await fbUpdate(`personel/${id}`, data);
+  const key = (id && id.value !== undefined) ? id.value : id;
+  if (!key || key === "undefined") throw new Error("Personel ID bulunamadı");
+  await fbUpdate(`personel/${key}`, data);
 }
 
 async function deleteStaff(id) {
-  await fbRemove(`personel/${id}`);
+  const key = (id && id.value !== undefined) ? id.value : id;
+  if (!key || key === "undefined") throw new Error("Personel ID bulunamadı");
+  await fbRemove(`personel/${key}`);
 }
 
 // ── İzin ─────────────────────────────────────────────────────
@@ -204,7 +212,9 @@ window._fbDeletePlaka = deletePlaka;
 // Global API referansı - dashboard ile çakışmayı önler
 window._fbAPI = {
   addStaff, deleteStaff, addPlaka, deletePlaka,
-  updateStaff, getStaff, getStaffWithOffDates, setStaffOff
+  updateStaff, getStaff, getStaffWithOffDates, setStaffOff,
+  addHotel, updateHotel, deleteHotel, getHotels,
+  addReservation, updateReservation, deleteReservation, getReservations
 };
 
 
@@ -265,8 +275,14 @@ window.addReservation = addReservation;
 window.updateReservation = updateReservation;
 window.deleteReservation = deleteReservation;
 window.getHotels = getHotels;
+window.addHotel = addHotel;
+window.updateHotel = updateHotel;
+window.deleteHotel = deleteHotel;
 window.loginHotel = loginHotel;
 window.getStaff = getStaff;
+window.addStaff = addStaff;
+window.updateStaff = updateStaff;
+window.deleteStaff = deleteStaff;
 window.getStaffWithOffDates = getStaffWithOffDates;
 window.getPlakalar = getPlakalar;
 window._firebaseApiGet = apiGet;

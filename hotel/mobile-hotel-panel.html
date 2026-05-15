@@ -81,10 +81,10 @@
 
 </div>
 
-<script src="../config/config.js"></script>
-<script src="../config/firebase.js"></script>
-<script src="../assets/common.js"></script>
-<script src="../assets/firebase-api.js"></script>
+<script src="../config/config.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../config/firebase.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../assets/common.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
 <script>
 showApiWarning();
 
@@ -103,6 +103,7 @@ document.getElementById("hotelCode").innerText = code  || "";
 document.getElementById("hotelSub").innerText  = (hotel||"").toUpperCase() + " — OTEL PANELİ";
 
 let currentDate = todayStr();
+let hotelReservationCache = [];
 document.getElementById("entryDate").value = currentDate;
 document.getElementById("entryTime").value = "10:30";
 document.getElementById("listDate").value  = currentDate;
@@ -149,7 +150,7 @@ function resetForm() {
 }
 
 async function saveReservation() {
-  if (!checkApiConfig()) return showToast("API_URL ayarlanmamış","err");
+  if (!checkApiConfig()) return showToast("Firebase ayarı bulunamadı","err");
   const date = document.getElementById("entryDate").value;
   const time = document.getElementById("entryTime").value;
   if (!date||!time) return showToast("Tarih ve saat zorunlu","err");
@@ -183,6 +184,7 @@ async function loadReservations() {
 }
 
 function renderList(list) {
+  hotelReservationCache = Array.isArray(list) ? list : [];
   const total  = list.length;
   const active = list.filter(r => r.status!=="CANCELLED").length;
   const pax    = list.reduce((s,r) => s+(Number(r.adult)||0)+(Number(r.child)||0),0);
@@ -210,8 +212,10 @@ function renderList(list) {
     const exited    = String(r.cikti).toUpperCase()==="TRUE";
     const inside2   = String(r.girdi).toUpperCase()==="TRUE" && !exited;
     const cancelled = r.status==="CANCELLED";
-    const canEdit   = !cancelled && !exited && !inside2;
-    const canCancel = !cancelled && !exited;
+    const hasCenterOperation = inside2 || exited || String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" || [r.staff1,r.staff2,r.staff3,r.staff4,r.plaka,r.kart].some(Boolean);
+    const canEdit   = !cancelled && !hasCenterOperation;
+    const canCancel = !cancelled && !hasCenterOperation;
+    const canDelete = !cancelled && !hasCenterOperation;
 
     let statusEl;
     if (exited)    statusEl='<span class="badge exited">✅ TAMAMLANDI</span>';
@@ -245,7 +249,7 @@ function renderList(list) {
         <div class="res-actions">
           ${canEdit   ? `<button class="btn-blue btn-sm" onclick='editRes(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✏️ Düzelt</button>` : ""}
           ${canCancel ? `<button class="btn-red  btn-sm" onclick="cancelRes('${r.id}')">❌ İptal</button>` : ""}
-          <button class="btn-red btn-sm" style="background:rgba(80,0,0,.9)" onclick="deleteRes('${r.id}')">🗑 Sil</button>
+          ${canDelete ? `<button class="btn-red btn-sm" style="background:rgba(80,0,0,.9)" onclick="deleteRes('${r.id}')">🗑 Sil</button>` : `<span class="badge entered">🔒 Merkez işlem yaptı</span>`}
         </div>
       </div>`;
   }).join("");
@@ -264,13 +268,6 @@ function editRes(r) {
   showSec("entry");
 }
 
-async function deleteRes(id) {
-  if (!confirm("Bu rezervasyon tamamen silinsin mi? Bu işlem geri alınamaz.")) return;
-  const r = await deleteReservation(id);
-  if (r.success) { showToast("🗑 Rezervasyon silindi"); await loadReservations(); }
-  else showToast("❌ Silinemedi", "err");
-}
-
 async function cancelRes(id) {
   if (!confirm("Bu rezervasyon iptal edilsin mi?")) return;
   const r = await apiGet("cancelReservation",{id});
@@ -279,6 +276,9 @@ async function cancelRes(id) {
 }
 
 async function deleteRes(id) {
+  const res = hotelReservationCache.find(x => String(x.id) === String(id));
+  const hasCenterOperation = res && (String(res.girdi).toUpperCase()==="TRUE" || String(res.cikti).toUpperCase()==="TRUE" || [res.staff1,res.staff2,res.staff3,res.staff4,res.plaka,res.kart].some(Boolean));
+  if (hasCenterOperation) return showToast("Merkez işlem yaptı. Otel bu rezervasyonu silemez.", "err");
   if (!confirm("Bu rezervasyon tamamen silinsin mi? Bu işlem geri alınamaz.")) return;
   const r = await apiGet("deleteReservation",{id});
   if (r.success) { showToast("Rezervasyon silindi"); loadReservations(); }
