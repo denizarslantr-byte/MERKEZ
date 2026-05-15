@@ -621,7 +621,8 @@ function renderReservations() {
       </table>
     </div>`).join("");
   setTimeout(() => restoreRowValues(_saved), 10);
-}Rezervasyon İşlemleri ──────────────────────────────────────
+}
+// ── Rezervasyon İşlemleri ──────────────────────────────────────
 async function updateGirdi(id, checked) {
   await updateReservation(id, { girdi:checked?"TRUE":"", status:checked?"IN_STORE":"PENDING" });
   // Sadece lokal state güncelle, tablo yeniden çekilmesin
