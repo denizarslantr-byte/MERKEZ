@@ -200,3 +200,59 @@ window._fbAddStaff    = addStaff;
 window._fbDeleteStaff = deleteStaff;
 window._fbAddPlaka    = addPlaka;
 window._fbDeletePlaka = deletePlaka;
+
+// Global API referansı - dashboard ile çakışmayı önler
+window._fbAPI = {
+  addStaff, deleteStaff, addPlaka, deletePlaka,
+  updateStaff, getStaff, getStaffWithOffDates, setStaffOff
+};
+
+
+// ── Eski apiGet/apiPost çağrıları için Firebase uyumluluk katmanı ─────────
+// Otel, bölgeci, patron, boss ve region ekranlarında kalan eski Apps Script
+// çağrılarını aynı Firebase veritabanına yönlendirir. Böylece otelden girilen
+// rezervasyon merkez ekranında aynı kaynaktan görünür.
+async function apiGet(action, params = {}) {
+  try {
+    if (action === "getReservations") {
+      let list = await getReservations(params.date || "");
+      if (params.hotel) list = list.filter(r => String(r.hotel || "") === String(params.hotel || ""));
+      return list;
+    }
+    if (action === "cancelReservation") {
+      await updateReservation(params.id, { status: "CANCELLED", updatedAt: new Date().toISOString() });
+      return { success: true };
+    }
+    if (action === "deleteReservation") {
+      await deleteReservation(params.id);
+      return { success: true };
+    }
+    if (action === "getHotels") return await getHotels();
+    if (action === "getStaff") return await getStaff();
+    if (action === "getPlakalar") return await getPlakalar();
+    return [];
+  } catch (err) {
+    console.error("Firebase apiGet hata:", action, err);
+    return { success: false, message: err.message || "Firebase okuma hatası" };
+  }
+}
+
+async function apiPost(action, body = {}) {
+  try {
+    if (action === "addReservation") {
+      const id = await addReservation(body);
+      return { success: true, id };
+    }
+    if (action === "updateReservation") {
+      const id = body.id;
+      const data = { ...body };
+      delete data.id;
+      await updateReservation(id, data);
+      return { success: true, id };
+    }
+    return { success: false, message: "Unknown action: " + action };
+  } catch (err) {
+    console.error("Firebase apiPost hata:", action, err);
+    return { success: false, message: err.message || "Firebase yazma hatası" };
+  }
+}

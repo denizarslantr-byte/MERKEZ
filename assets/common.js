@@ -1,14 +1,16 @@
 // Piano Deri V6.1 — Ortak Yardımcılar
 
 function checkApiConfig() {
-  return API_URL && !API_URL.includes("BURAYA_APPS_SCRIPT");
+  const hasFirebase = typeof FIREBASE_CONFIG !== "undefined" && FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL;
+  const hasAppsScript = typeof API_URL !== "undefined" && API_URL && !API_URL.includes("BURAYA_APPS_SCRIPT");
+  return !!(hasFirebase || hasAppsScript);
 }
 
 function showApiWarning(id = "apiWarning") {
   const el = document.getElementById(id);
   if (!el) return;
   if (!checkApiConfig()) {
-    el.innerHTML = "⚠️ API_URL ayarlanmamış. config/config.js dosyasına Apps Script Web App URL yazılmalı.";
+    el.innerHTML = "⚠️ Firebase veya API ayarı bulunamadı. config/firebase.js dosyasını kontrol edin.";
     el.style.display = "block";
   } else {
     el.style.display = "none";
