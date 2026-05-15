@@ -144,7 +144,7 @@
               <option value="GRUP1">GRUP1</option>
               <option value="GRUP2">GRUP2</option>
             </select>
-            <button class="btn-gold" onclick="addStaff()">+ Ekle</button>
+            <button class="btn-gold" onclick="addStaffUI()">+ Ekle</button>
           </div>
           <div id="allStaffList"></div>
         </div>
@@ -178,7 +178,7 @@
           <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
             <input id="plakaGir" placeholder="Plaka (örn: 07ABC123)" style="flex:1;min-width:140px">
             <input id="modelGir" placeholder="Marka/Model (örn: Ford Transit)" style="flex:1;min-width:140px">
-            <button class="btn-gold" onclick="addPlaka()">+ Ekle</button>
+            <button class="btn-gold" onclick="addPlakaUI()">+ Ekle</button>
           </div>
           <div id="plakaList"></div>
         </div>
@@ -404,12 +404,12 @@ function renderPlakaList() {
       <b style="flex:1">${p.plaka}</b>
       <span style="color:var(--text2);font-size:12px">${p.model||""}</span>
       <span class="badge ${p.status==="ACTIVE"?"exited":"cancelled"}">${p.status==="ACTIVE"?"AKTİF":"PASİF"}</span>
-      <button class="btn-red btn-sm" onclick="deletePlaka('${p.id}')">Sil</button>
+      <button class="btn-red btn-sm" onclick="deletePlakaUI('${p.id}')">Sil</button>
     </div>`).join("") || '<div style="color:var(--text2)">Araç yok.</div>';
 }
 
 // Araç ekle
-async function addPlaka() {
+async function addPlakaUI() {
   const plaka = document.getElementById("plakaGir")?.value.trim().toUpperCase();
   const model = document.getElementById("modelGir")?.value.trim();
   if (!plaka) return showToast("Plaka yazın","err");
@@ -423,7 +423,7 @@ async function addPlaka() {
   } else showToast("❌ Hata","err");
 }
 
-async function deletePlaka(id) {
+async function deletePlakaUI(id) {
   if (!confirm("Araç silinsin mi?")) return;
   await deletePlaka(id);
   showToast("Araç silindi");
@@ -484,7 +484,7 @@ function renderStaffPanel() {
         ${gb}
         <span class="badge ${aktif?'exited':'cancelled'}">${aktif?"AKTİF":"PASİF"}</span>
         <button class="btn-blue btn-sm" onclick='openStaffModal(${JSON.stringify(s).replace(/"/g,"&quot;")})'>✏️ Düzelt</button>
-        <button class="btn-red  btn-sm" onclick="deleteStaff('${s.id}')">Sil</button>
+        <button class="btn-red  btn-sm" onclick="deleteStaffUI('${s.id}')">Sil</button>
       </div>`;
   }).join("") || '<div style="color:var(--text2)">Personel yok.</div>';
 
@@ -732,7 +732,7 @@ async function cancelRes(id) {
 }
 
 // ── Personel İşlemleri ─────────────────────────────────────────
-async function addStaff() {
+async function addStaffUI() {
   const name = staffNameInput.value.trim();
   const grup = staffGrupInput.value;
   if (!name) return showToast("Personel adı yazın","err");
@@ -742,7 +742,7 @@ async function addStaff() {
   else showToast("❌ "+(r.message||"Hata"),"err");
 }
 
-async function deleteStaff(id) {
+async function deleteStaffUI(id) {
   if (!confirm("Personel silinsin mi?")) return;
   await deleteStaff(id);
   showToast("Personel silindi");
