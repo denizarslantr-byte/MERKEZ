@@ -55,10 +55,10 @@ window.addEventListener("load",()=>{
   if(c){code.value=c;password.value=p||"";rememberMe.checked=true;}
 });
 async function login(){
-  if(!checkApiConfig())return;
   const c=code.value.trim(), p=password.value.trim();
   if(!c||!p){loginErr.innerText="Kod ve şifre zorunlu";loginErr.style.display="block";return;}
-  const r=await apiGet("login",{code:c,password:p});
+  const hotelData = await loginHotel(c, p);
+  const r = hotelData ? {success:true, hotel:hotelData.hotel, code:hotelData.code} : {success:false, message:"Hatalı kullanici kodu veya sifre"};
   if(r.success){
     localStorage.setItem("hotel",r.hotel);
     localStorage.setItem("hotelCode",r.code);
