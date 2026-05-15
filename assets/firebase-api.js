@@ -256,3 +256,21 @@ async function apiPost(action, body = {}) {
     return { success: false, message: err.message || "Firebase yazma hatası" };
   }
 }
+
+
+// ZORUNLU GLOBAL BAĞLANTI — eski common.js / cache çakışmalarını engeller
+window.initFirebase = initFirebase;
+window.getReservations = getReservations;
+window.addReservation = addReservation;
+window.updateReservation = updateReservation;
+window.deleteReservation = deleteReservation;
+window.getHotels = getHotels;
+window.loginHotel = loginHotel;
+window.getStaff = getStaff;
+window.getStaffWithOffDates = getStaffWithOffDates;
+window.getPlakalar = getPlakalar;
+window._firebaseApiGet = apiGet;
+window._firebaseApiPost = apiPost;
+window._firebaseApiReady = true;
+window.apiGet = apiGet;
+window.apiPost = apiPost;

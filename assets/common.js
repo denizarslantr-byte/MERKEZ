@@ -21,7 +21,15 @@ function buildQS(action, params = {}) {
   return new URLSearchParams({ action, key: API_KEY, ...params });
 }
 
+// Eski Google Sheets / Apps Script bağlantısı sadece yedek olarak kalır.
+// Firebase API yüklüyse ekranların tamamı aynı Firebase veritabanını kullanır.
 async function apiGet(action, params = {}) {
+  if (window._firebaseApiReady && window._firebaseApiGet) {
+    return await window._firebaseApiGet(action, params);
+  }
+  if (!API_URL || API_URL.includes("BURAYA_APPS_SCRIPT")) {
+    throw new Error("API_URL ayarlı değil ve Firebase API henüz yüklenmedi.");
+  }
   const r = await fetch(`${API_URL}?${buildQS(action, params)}`);
   const result = await r.json();
   if (result && Array.isArray(result.data)) return result.data;
@@ -30,6 +38,12 @@ async function apiGet(action, params = {}) {
 }
 
 async function apiPost(action, body) {
+  if (window._firebaseApiReady && window._firebaseApiPost) {
+    return await window._firebaseApiPost(action, body);
+  }
+  if (!API_URL || API_URL.includes("BURAYA_APPS_SCRIPT")) {
+    throw new Error("API_URL ayarlı değil ve Firebase API henüz yüklenmedi.");
+  }
   const r = await fetch(`${API_URL}?${buildQS(action)}`, {
     method: "POST",
     body: JSON.stringify(body)
