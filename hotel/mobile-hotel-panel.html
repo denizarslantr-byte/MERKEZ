@@ -212,7 +212,7 @@ function renderList(list) {
     const exited    = String(r.cikti).toUpperCase()==="TRUE";
     const inside2   = String(r.girdi).toUpperCase()==="TRUE" && !exited;
     const cancelled = r.status==="CANCELLED";
-    const hasCenterOperation = inside2 || exited || String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" || [r.staff1,r.staff2,r.staff3,r.staff4,r.plaka,r.kart].some(Boolean);
+    const hasCenterOperation = inside2 || exited || String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" || [r.staff1,r.staff2,r.staff3,r.staff4,r.ayak,r.plaka,r.kart].some(Boolean);
     const canEdit   = !cancelled && !hasCenterOperation;
     const canCancel = !cancelled && !hasCenterOperation;
     const canDelete = !cancelled && !hasCenterOperation;
@@ -222,8 +222,6 @@ function renderList(list) {
     else if (inside2)   statusEl='<span class="badge entered">🟠 İÇERİDE</span>';
     else if (cancelled) statusEl='<span class="badge cancelled">❌ İPTAL</span>';
     else                statusEl='<span class="badge pending">⏳ BEKLİYOR</span>';
-
-    const staffList = [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean);
 
     return `
       <div class="res-card" style="${cancelled?"opacity:.55":""}">
@@ -239,7 +237,6 @@ function renderList(list) {
             </div>
             <div class="res-detail">🌍 ${r.nation}</div>
             ${r.notes?`<div class="res-detail" style="font-style:italic">💬 ${r.notes}</div>`:""}
-            ${staffList.length?`<div class="res-detail">👤 ${staffList.join(", ")}</div>`:""}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
             ${statusEl}
@@ -288,7 +285,7 @@ async function deleteRes(id) {
 // Init
 showSec("entry");
 
-// Otel paneli otomatik yenileme: 5 saniye
+// Otel paneli otomatik yenileme: 10 saniye
 setInterval(() => {
   if (!document.hidden) loadReservations();
 }, 10000);
