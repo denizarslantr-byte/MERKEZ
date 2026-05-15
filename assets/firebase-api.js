@@ -194,3 +194,9 @@ async function adminAuth(pin) {
   const correctPin = await getPin();
   return String(pin) === String(correctPin);
 }
+
+// Dashboard ile çakışmayı önlemek için alias
+window._fbAddStaff    = addStaff;
+window._fbDeleteStaff = deleteStaff;
+window._fbAddPlaka    = addPlaka;
+window._fbDeletePlaka = deletePlaka;
