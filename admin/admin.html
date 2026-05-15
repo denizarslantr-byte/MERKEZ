@@ -344,12 +344,9 @@ async function saveHotel() {
   const acenta = nHotelAcenta.value.trim();
   if (!name||!code||!pass) return showToast("Ad, kod ve şifre zorunlu","err");
   await addHotel({ hotel:name, code, password:pass, acentaCode:acenta, status:"ACTIVE" });
-  const r = { success:true };
-  if (r.success) {
-    showToast("✅ Otel eklendi: "+name);
-    nHotelName.value=""; nHotelCode.value=""; nHotelPass.value=""; nHotelAcenta.value="";
-    loadHotels();
-  } else showToast("❌ "+(r.message||"Hata"),"err");
+  showToast("✅ Otel eklendi: "+name);
+  nHotelName.value=""; nHotelCode.value=""; nHotelPass.value=""; nHotelAcenta.value="";
+  loadHotels();
 }
 
 function openEditModal(h) {
