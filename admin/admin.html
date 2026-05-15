@@ -263,8 +263,58 @@ function openTab(n) {
 }
 
 // ── Oteller ────────────────────────────────────────────────────
+// ── Firebase yardımcı hesaplama fonksiyonları ──────────────────
+async function calcStatsFromFirebase(startDate, endDate) {
+  const all = await getReservations();
+  const filtered = all.filter(r => (!startDate || r.date >= startDate) && (!endDate || r.date <= endDate));
+  let totalRes=0, totalPax=0;
+  const byStatus={}, byNation={}, byHotel={}, byDay={}, byHour={};
+  filtered.forEach(r => {
+    totalRes++; totalPax += (Number(r.adult)||0)+(Number(r.child)||0);
+    const st = r.status||"PENDING";
+    const hour = String(r.time||"").slice(0,2)||"??";
+    byStatus[st]   = (byStatus[st]||0)+1;
+    byNation[r.nation||"Diger"] = (byNation[r.nation||"Diger"]||0)+1;
+    byHotel[r.hotel||""]  = (byHotel[r.hotel||""]||0)+1;
+    byDay[r.date||""]     = (byDay[r.date||""]||0)+1;
+    byHour[hour]          = (byHour[hour]||0)+1;
+  });
+  return { success:true, totalRes, totalPax, byStatus, byNation, byHotel, byDay, byHour };
+}
+
+async function calcPerfFromFirebase(startDate, endDate) {
+  const all = await getReservations();
+  const filtered = all.filter(r => (!startDate||r.date>=startDate)&&(!endDate||r.date<=endDate)&&r.status!=="CANCELLED");
+  const perf = {};
+  filtered.forEach(r => {
+    const pax=(Number(r.adult)||0)+(Number(r.child)||0);
+    [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n => {
+      if(!perf[n]) perf[n]={count:0,pax:0};
+      perf[n].count++; perf[n].pax+=pax;
+    });
+  });
+  return Object.entries(perf).map(([name,v])=>({name,count:v.count,pax:v.pax})).sort((a,b)=>b.count-a.count);
+}
+
+async function calcPlakaFromFirebase(startDate, endDate) {
+  const all = await getReservations();
+  const stats = {};
+  all.filter(r => r.status!=="CANCELLED"&&(!startDate||r.date>=startDate)&&(!endDate||r.date<=endDate)).forEach(r => {
+    const plaka = String(r.ayak||"").trim();
+    if(!plaka) return;
+    if(!stats[plaka]) stats[plaka]={count:0,dates:[],hotels:{}};
+    stats[plaka].count++;
+    if(!stats[plaka].dates.includes(r.date)) stats[plaka].dates.push(r.date);
+    stats[plaka].hotels[r.hotel]=(stats[plaka].hotels[r.hotel]||0)+1;
+  });
+  return Object.entries(stats).map(([plaka,v])=>{
+    const sorted=v.dates.sort();
+    return{plaka,count:v.count,gunSayisi:v.dates.length,ilkKullanim:sorted[0]||"",sonKullanim:sorted[sorted.length-1]||"",oteller:v.hotels};
+  }).sort((a,b)=>b.count-a.count);
+}
+
 async function loadHotels() {
-  hotelsData = await apiGet("getHotels");
+  hotelsData = await getHotels();
   renderHotels();
 }
 
@@ -294,7 +344,8 @@ async function saveHotel() {
   const pass   = nHotelPass.value.trim();
   const acenta = nHotelAcenta.value.trim();
   if (!name||!code||!pass) return showToast("Ad, kod ve şifre zorunlu","err");
-  const r = await apiPost("addHotel",{ hotel:name, code, password:pass, acentaCode:acenta });
+  await addHotel({ hotel:name, code, password:pass, acentaCode:acenta, status:"ACTIVE" });
+  const r = { success:true };
   if (r.success) {
     showToast("✅ Otel eklendi: "+name);
     nHotelName.value=""; nHotelCode.value=""; nHotelPass.value=""; nHotelAcenta.value="";
@@ -323,14 +374,14 @@ async function saveEditHotel() {
   const status = editHotelStatus.value;
   if (!name||!code||!pass) return showToast("Ad, kod ve şifre zorunlu","err");
   const r = await updateHotel(b.id,{ id, hotel:name, code, password:pass, acentaCode:acenta, status });
-  if (r.success) { showToast("✅ Otel güncellendi"); closeModal(); loadHotels(); }
+  showToast("✅ Otel güncellendi"); closeModal(); loadHotels();
   else showToast("❌ "+(r.message||"Hata"),"err");
 }
 
 async function deleteHotel(id, name) {
   if (!confirm(`"${name}" oteli kalıcı olarak silinsin mi?`)) return;
-  const r = await apiGet("deleteHotel",{ id });
-  if (r.success) { showToast("Otel silindi"); loadHotels(); }
+  await deleteHotel(id);
+  showToast("Otel silindi"); loadHotels();
   else showToast("Silme başarısız","err");
 }
 
@@ -351,8 +402,8 @@ async function loadAdminRapor() {
   const e = aREnd.value   || todayStr();
   adminRaporContent.innerHTML='<div style="color:var(--text2);text-align:center;padding:20px">Yükleniyor...</div>';
   [adminRaporData, adminPerfData] = await Promise.all([
-    apiGet("getStats",            { startDate:s, endDate:e }),
-    apiGet("getStaffPerformance", { startDate:s, endDate:e })
+    calcStatsFromFirebase(s, e),
+    calcPerfFromFirebase(s, e)
   ]);
   if (!adminRaporData?.success) { adminRaporContent.innerHTML='<div class="notice">Veri alınamadı.</div>'; return; }
   renderAdminRapor(s, e);
@@ -443,7 +494,8 @@ async function loadLogs() {
   if (logUserF.value)   params.user_filter   = logUserF.value;
   if (logStartF.value)  params.startDate     = logStartF.value;
   if (logEndF.value)    params.endDate       = logEndF.value;
-  logsCache = await apiGet("getLogs", params);
+  const logsRaw = await fbGet("logs");
+  logsCache = logsRaw ? Object.values(logsRaw).reverse().slice(0,200) : [];
   renderLogs(); renderLogSummary();
 }
 
@@ -513,7 +565,7 @@ async function loadPlakaRapor() {
   document.getElementById("plakaRaporContent").innerHTML =
     '<div style="color:var(--text2);text-align:center;padding:20px">Yükleniyor...</div>';
 
-  const data = await apiGet("getPlakaRapor", { startDate:s, endDate:e });
+  const data = await calcPlakaFromFirebase(s, e);
   renderPlakaRapor(data, s, e);
 }
 
@@ -572,7 +624,12 @@ async function changePin() {
   if (!old||!n1||!n2) { pinFeedback.innerHTML='<div class="notice">Tüm alanları doldurun.</div>'; return; }
   if (n1 !== n2)       { pinFeedback.innerHTML='<div class="notice">Yeni PIN\'ler eşleşmiyor.</div>'; return; }
   if (n1.length < 4)   { pinFeedback.innerHTML='<div class="notice">PIN en az 4 karakter olmalı.</div>'; return; }
-  const r = await apiPost("changePin", { oldPin: old, newPin: n1 });
+  const currentPin = await getPin();
+  if (String(old) !== String(currentPin)) {
+    showToast("❌ Mevcut PIN hatalı","err"); return;
+  }
+  await setPin(n1);
+  const r = { success: true };
   if (r.success) {
     pinFeedback.innerHTML='<div class="ok">✅ PIN başarıyla değiştirildi. Bir sonraki girişte yeni PIN kullanın.</div>';
     oldPin.value=""; newPin.value=""; newPin2.value="";
