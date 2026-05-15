@@ -335,9 +335,9 @@ async function loadAll() {
   updateDateDisplay();
   [reservations, staff, hotels, plakalar] = await Promise.all([
     getReservations(datePicker.value),
-    apiGet("getStaff"),
-    apiGet("getHotels"),
-    apiGet("getPlakalar")
+    getStaffWithOffDates(),
+    getHotels(),
+    getPlakalar()
   ]);
   if (!Array.isArray(plakalar)) plakalar = [];
   checkNewReservations(reservations);
@@ -413,7 +413,7 @@ async function addPlakaUI() {
   const plaka = document.getElementById("plakaGir")?.value.trim().toUpperCase();
   const model = document.getElementById("modelGir")?.value.trim();
   if (!plaka) return showToast("Plaka yazın","err");
-  await addPlaka(plaka, model);
+  await window._fbAPI.addPlaka(plaka, model);
   const r = { success: true };
   if (r.success) {
     document.getElementById("plakaGir").value = "";
@@ -425,7 +425,7 @@ async function addPlakaUI() {
 
 async function deletePlakaUI(id) {
   if (!confirm("Araç silinsin mi?")) return;
-  await deletePlaka(id);
+  await window._fbAPI.deletePlaka(id);
   showToast("Araç silindi");
   await loadAll();
 }
@@ -736,7 +736,8 @@ async function addStaffUI() {
   const name = staffNameInput.value.trim();
   const grup = staffGrupInput.value;
   if (!name) return showToast("Personel adı yazın","err");
-  await addStaff({ name, grup });
+  const fbStaff = window._fbAPI.addStaff;
+  await fbStaff({ name, grup });
   const r = { success: true };
   if (r.success) { staffNameInput.value=""; staffGrupInput.value=""; showToast("✅ "+name+" eklendi"); await loadAll(); }
   else showToast("❌ "+(r.message||"Hata"),"err");
@@ -744,7 +745,7 @@ async function addStaffUI() {
 
 async function deleteStaffUI(id) {
   if (!confirm("Personel silinsin mi?")) return;
-  await deleteStaff(id);
+  await window._fbAPI.deleteStaff(id);
   showToast("Personel silindi");
   await loadAll();
 }
@@ -804,6 +805,37 @@ async function makeOff(off) {
 }
 
 // ── Raporlar ──────────────────────────────────────────────────
+// ── Firebase Rapor Hesaplama ───────────────────────────────────
+async function calcStatsFromFirebase(startDate, endDate) {
+  const all = await getReservations();
+  const filtered = all.filter(r => (!startDate||r.date>=startDate)&&(!endDate||r.date<=endDate));
+  let totalRes=0,totalPax=0;
+  const byStatus={},byNation={},byHotel={},byDay={},byHour={};
+  filtered.forEach(r=>{
+    totalRes++;totalPax+=(Number(r.adult)||0)+(Number(r.child)||0);
+    byStatus[r.status||"PENDING"]=(byStatus[r.status||"PENDING"]||0)+1;
+    byNation[r.nation||"Diger"]=(byNation[r.nation||"Diger"]||0)+1;
+    byHotel[r.hotel||""]=(byHotel[r.hotel||""]||0)+1;
+    byDay[r.date||""]=(byDay[r.date||""]||0)+1;
+    byHour[String(r.time||"").slice(0,2)||"??"]=(byHour[String(r.time||"").slice(0,2)||"??"]||0)+1;
+  });
+  return {success:true,totalRes,totalPax,byStatus,byNation,byHotel,byDay,byHour};
+}
+
+async function calcPerfFromFirebase(startDate, endDate) {
+  const all = await getReservations();
+  const filtered = all.filter(r=>(!startDate||r.date>=startDate)&&(!endDate||r.date<=endDate)&&r.status!=="CANCELLED");
+  const perf={};
+  filtered.forEach(r=>{
+    const pax=(Number(r.adult)||0)+(Number(r.child)||0);
+    [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n=>{
+      if(!perf[n])perf[n]={count:0,pax:0};
+      perf[n].count++;perf[n].pax+=pax;
+    });
+  });
+  return Object.entries(perf).map(([name,v])=>({name,count:v.count,pax:v.pax})).sort((a,b)=>b.count-a.count);
+}
+
 let raporData=null, raporPerf=null;
 
 function setRaporRange(range) {
@@ -819,8 +851,8 @@ async function loadRapor() {
   const s=rStart.value||todayStr(), e=rEnd.value||todayStr();
   raporContent.innerHTML='<div style="color:var(--text2);text-align:center;padding:18px">Yükleniyor...</div>';
   [raporData,raporPerf]=await Promise.all([
-    apiGet("getStats",{startDate:s,endDate:e}),
-    apiGet("getStaffPerformance",{startDate:s,endDate:e})
+    calcStatsFromFirebase(s,e),
+    calcPerfFromFirebase(s,e)
   ]);
   if(!raporData?.success){raporContent.innerHTML='<div class="notice">Veri alınamadı.</div>';return;}
   renderRapor(s,e);
