@@ -372,16 +372,14 @@ async function saveEditHotel() {
   const acenta = editHotelAcenta.value.trim();
   const status = editHotelStatus.value;
   if (!name||!code||!pass) return showToast("Ad, kod ve şifre zorunlu","err");
-  const r = await updateHotel(b.id,{ id, hotel:name, code, password:pass, acentaCode:acenta, status });
+  await updateHotel(editHotelId, { hotel:name, code, password:pass, acentaCode:acenta, status });
   showToast("✅ Otel güncellendi"); closeModal(); loadHotels();
-  else showToast("❌ "+(r.message||"Hata"),"err");
 }
 
 async function deleteHotel(id, name) {
   if (!confirm(`"${name}" oteli kalıcı olarak silinsin mi?`)) return;
   await deleteHotel(id);
   showToast("Otel silindi"); loadHotels();
-  else showToast("Silme başarısız","err");
 }
 
 editModal.addEventListener("click", e => { if (e.target===editModal) closeModal(); });
