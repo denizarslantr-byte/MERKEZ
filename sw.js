@@ -1,8 +1,4 @@
-// Piano Deri — Service Worker v20260515-notif-stack-sound-10sec-fix: önbelleği temizler, her isteği canlı alır
-self.addEventListener('install', e => { self.skipWaiting(); });
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => self.clients.claim()));
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request, { cache: 'no-store' }).catch(() => fetch(e.request)));
-});
+const CACHE_NAME='piano-v6-1-patron-report-summary-20260515';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match(e.request)));});
