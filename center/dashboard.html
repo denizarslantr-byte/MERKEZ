@@ -683,7 +683,7 @@ function editCenter(r) {
   centerNation.value= r.nation||"RUS";
   centerNotes.value = r.notes||"";
   centerKart.value  = r.kart||"";
-  centerAyak.value  = r.ayak||"";
+  centerPlaka.value = r.ayak||"";
   showSection("manualSection","mnManual");
 }
 
@@ -691,7 +691,7 @@ function clearManualForm() {
   editResId.value=""; manualTitle.innerText="✏️ Elle Rezervasyon";
   centerHotel.value=""; centerDate.value=today; centerTime.value="10:30";
   centerAdult.value=2; centerChild.value=0;
-  centerNation.value="RUS"; centerNotes.value=""; centerKart.value=""; centerAyak.value="";
+  centerNation.value="RUS"; centerNotes.value=""; centerKart.value=""; centerPlaka.value="";
 }
 
 async function saveCenterReservation() {
@@ -701,7 +701,7 @@ async function saveCenterReservation() {
     date:centerDate.value, time:centerTime.value, hotel:centerHotel.value,
     adult:centerAdult.value, child:centerChild.value,
     nation:centerNation.value, notes:centerNotes.value,
-    kart:centerKart.value, ayak:centerAyak.value,
+    kart:centerKart.value, ayak:centerPlaka.value,
     status:editResId.value?"UPDATED":"PENDING"
   };
   if (editResId.value) body.id = editResId.value;
@@ -714,10 +714,11 @@ async function saveCenterReservation() {
     r = { success: true, id: newId };
   }
   if (r.success) {
+    const wasEdit = !!body.id;
     datePicker.value = body.date;
     clearManualForm();
     showSection("homeSection","mnHome");
-    showToast(editResId.value ? "✅ Güncellendi" : "✅ Kaydedildi");
+    showToast(wasEdit ? "✅ Güncellendi" : "✅ Kaydedildi");
     await loadAll();
   } else {
     showToast("❌ " + (r.message||"Hata"),"err");
