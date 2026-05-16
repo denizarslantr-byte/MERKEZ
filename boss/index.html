@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Piano Deri — Patron</title>
 <style>
 :root{
@@ -109,6 +107,21 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Aria
 /* ── LOADING ── */
 .loading{text-align:center;padding:40px;color:var(--text2);font-size:14px}
 </style>
+
+  <!-- PWA -->
+  <link rel="manifest" href="/boss/manifest.json">
+  <meta name="theme-color" content="#d6a63f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Piano İzleme">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <script>
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.register("/boss/sw.js", {scope: "/boss/"})
+        .then(()=>console.log("PWA aktif"))
+        .catch(e=>console.log("PWA hata:",e));
+    }
+  </script>
 </head>
 <body>
 
