@@ -10,6 +10,19 @@
     .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;display:flex;align-items:center;justify-content:center;padding:14px; }
     .modal-box { background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:22px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto; }
     .modal-box h3 { color:var(--gold2);margin-top:0; }
+    /* Tarih seçici ikonlarını görünür yap */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) brightness(1.5) sepia(0.3) saturate(2) hue-rotate(10deg);
+      cursor: pointer; opacity: 0.85;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+    input[type="date"] { color-scheme: dark; }
+    /* Rapor butonları */
+    .r6-row{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+    .r6-num{font-size:18px;font-weight:900;color:var(--gold2);min-width:22px}
+    .r6-ico{font-size:14px}
+    .r6-title{flex:1;font-weight:700;font-size:13px}
+    .r6-show{min-width:80px}
   </style>
 </head>
 <body>
@@ -51,6 +64,7 @@
       <button id="tab3" class="tab-btn"        onclick="openTab(3)">📋 Log</button>
       <button id="tab4" class="tab-btn"        onclick="openTab(4)">⚙️ Ayarlar</button>
       <button id="tab5" class="tab-btn"        onclick="openTab(5);loadPlakaRapor()">🚗 Araç Raporu</button>
+      <button id="tab6" class="tab-btn"        onclick="openTab(6)" style="background:linear-gradient(135deg,rgba(160,120,48,.4),rgba(241,212,138,.15));border-color:var(--gold)">📥 Admin Raporları</button>
     </div>
 
     <!-- TAB 1: Oteller -->
@@ -187,6 +201,32 @@
       </div>
     </div>
 
+    <!-- TAB 6: Admin Raporları (1-8) -->
+    <div id="tabContent6" style="display:none">
+      <div class="panel-card">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <h3 style="color:var(--gold2);margin:0;flex:1">📥 Admin Raporları</h3>
+          <button class="btn-dark btn-sm" onclick="setAdminRapor6Range('today')">Bugün</button>
+          <button class="btn-dark btn-sm" onclick="setAdminRapor6Range('week')">Bu Hafta</button>
+          <button class="btn-dark btn-sm" onclick="setAdminRapor6Range('month')">Bu Ay</button>
+          <input type="date" id="r6Start" style="width:135px">
+          <span style="color:var(--text2)">—</span>
+          <input type="date" id="r6End" style="width:135px">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+          <div class="r6-row"><span class="r6-num">1</span><span class="r6-ico">📋</span><span class="r6-title">Tüm Rezervasyonlar</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(1)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(1)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">2</span><span class="r6-ico">🏨</span><span class="r6-title">Otel Bazlı Özet</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(2)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(2)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">3</span><span class="r6-ico">👥</span><span class="r6-title">Personel Performansı</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(3)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(3)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">4</span><span class="r6-ico">🚗</span><span class="r6-title">Araç Kullanım</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(4)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(4)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">5</span><span class="r6-ico">🔧</span><span class="r6-title">Plakasız / Atanmamış</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(5)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(5)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">6</span><span class="r6-ico">❌</span><span class="r6-title">İptal Listesi</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(6)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(6)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">7</span><span class="r6-ico">🌍</span><span class="r6-title">Uyruk Dağılımı</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(7)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(7)">⬇ Aktar</button></div>
+          <div class="r6-row"><span class="r6-num">8</span><span class="r6-ico">⏰</span><span class="r6-title">Saatlik Dağılım</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(8)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(8)">⬇ Aktar</button></div>
+        </div>
+        <div id="adminRapor6Result" style="margin-top:4px"></div>
+      </div>
+    </div>
+
   </section>
 </div>
 
@@ -261,11 +301,148 @@ function adminLogout() {
 
 // ── Tab ────────────────────────────────────────────────────────
 function openTab(n) {
-  [1,2,3,4,5].forEach(i => {
+  [1,2,3,4,5,6].forEach(i => {
     document.getElementById("tabContent"+i).style.display = i===n?"block":"none";
     document.getElementById("tab"+i).classList.toggle("active", i===n);
   });
   if (n===2) loadAdminRapor();
+}
+
+function setAdminRapor6Range(range) {
+  const t = todayStr();
+  if (range==="today") { document.getElementById("r6Start").value=t; document.getElementById("r6End").value=t; }
+  else if (range==="week")  { document.getElementById("r6Start").value=weekStart(t); document.getElementById("r6End").value=t; }
+  else if (range==="month") { document.getElementById("r6Start").value=monthStart(t); document.getElementById("r6End").value=t; }
+}
+
+async function adminExport(num) {
+  const s = document.getElementById("r6Start")?.value || todayStr();
+  const e = document.getElementById("r6End")?.value   || todayStr();
+  const el = document.getElementById("adminRapor6Result");
+  el.innerHTML = '<div style="color:var(--text2);text-align:center;padding:16px">Yükleniyor...</div>';
+
+  const all = await getReservations();
+  const filtered = all.filter(r => (!s||r.date>=s)&&(!e||r.date<=e));
+  let wb, ws, rows, headers, filename;
+  const thin = { style:"thin", color:{rgb:"888888"} };
+  const border = { top:thin,bottom:thin,left:thin,right:thin };
+
+  function applyBorder(ws, data) {
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    ws["!rows"] = Array.from({length:range.e.r+1},()=>({hpx:28}));
+    for (let R=range.s.r;R<=range.e.r;R++) for (let C=range.s.c;C<=range.e.c;C++) {
+      const addr = XLSX.utils.encode_cell({r:R,c:C});
+      if (!ws[addr]) ws[addr]={v:"",t:"s"};
+      ws[addr].s = ws[addr].s||{};
+      ws[addr].s.border = border;
+      if (R===0) ws[addr].s.font = {bold:true};
+    }
+  }
+
+  if (num === 1) {
+    // Tüm rezervasyonlar
+    headers = ["Tarih","Otel","Saat","Yetişkin","Çocuk","Uyruk","Kart","Plaka","Personel","Durum","Not"];
+    rows = filtered.map(r=>[fmtDateDot(r.date),r.hotel||"",r.time||"",Number(r.adult)||0,Number(r.child)||0,r.nation||"",r.kart||"",r.ayak||"",
+      [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).join(", "),r.status||"",r.notes||""]);
+    ws = XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wch:12},{wch:28},{wch:8},{wch:8},{wch:8},{wch:10},{wch:12},{wch:12},{wch:30},{wch:12},{wch:20}];
+    filename=`rapor1-tum-rezervasyon-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  } else if (num === 2) {
+    // Otel bazlı özet
+    const byHotel={};
+    filtered.forEach(r=>{
+      const h=r.hotel||""; if(!byHotel[h]) byHotel[h]={count:0,pax:0};
+      byHotel[h].count++; byHotel[h].pax+=(Number(r.adult)||0)+(Number(r.child)||0);
+    });
+    headers=["Otel","Rezervasyon","Toplam PAX"];
+    rows=Object.entries(byHotel).sort((a,b)=>b[1].count-a[1].count).map(([h,v])=>[h,v.count,v.pax]);
+    rows.push(["TOPLAM",rows.reduce((s,r)=>s+r[1],0),rows.reduce((s,r)=>s+r[2],0)]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wch:32},{wch:14},{wch:14}];
+    filename=`rapor2-otel-ozet-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  } else if (num === 3) {
+    // Personel performans
+    const perf={};
+    filtered.filter(r=>r.status!=="CANCELLED").forEach(r=>{
+      const pax=(Number(r.adult)||0)+(Number(r.child)||0);
+      [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n=>{
+        if(!perf[n]) perf[n]={count:0,pax:0}; perf[n].count++; perf[n].pax+=pax;
+      });
+    });
+    headers=["Personel","Program Sayısı","Toplam PAX"];
+    rows=Object.entries(perf).sort((a,b)=>b[1].count-a[1].count).map(([n,v])=>[n,v.count,v.pax]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wch:24},{wch:16},{wch:14}];
+    filename=`rapor3-personel-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  } else if (num === 4) {
+    // Araç kullanım
+    const arac={};
+    filtered.filter(r=>r.status!=="CANCELLED").forEach(r=>{
+      const p=String(r.ayak||"").trim(); if(!p) return;
+      if(!arac[p]) arac[p]={count:0,dates:[],hotels:[]};
+      arac[p].count++;
+      if(!arac[p].dates.includes(r.date)) arac[p].dates.push(r.date);
+      if(!arac[p].hotels.includes(r.hotel)) arac[p].hotels.push(r.hotel);
+    });
+    headers=["Plaka","Sefer","Gün","Oteller"];
+    rows=Object.entries(arac).sort((a,b)=>b[1].count-a[1].count).map(([p,v])=>[p,v.count,v.dates.length,v.hotels.join(", ")]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wpx:110},{wch:8},{wch:8},{wch:40}];
+    filename=`rapor4-arac-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  } else if (num === 5) {
+    // Plakasız / atanmamış
+    const plakasiz=filtered.filter(r=>r.status!=="CANCELLED"&&!String(r.ayak||"").trim());
+    headers=["OTEL ADI","SAAT","PAX","PLAKA"];
+    rows=plakasiz.sort((a,b)=>String(a.time||"").localeCompare(String(b.time||""))||String(a.hotel||"").localeCompare(String(b.hotel||""))).map(r=>[r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0),""]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    const maxH=Math.max(...plakasiz.map(r=>(r.hotel||"").length),8);
+    ws["!cols"]=[{wch:maxH+2},{wch:8},{wch:6},{wpx:110}];
+    ws["!rows"]=Array.from({length:rows.length+1},()=>({hpx:35}));
+    applyBorder(ws);
+    filename=`rapor5-plakasiz-${s}-${e}.xlsx`;
+  } else if (num === 6) {
+    // İptal listesi
+    const iptaller=all.filter(r=>r.status==="CANCELLED"&&(!s||r.date>=s)&&(!e||r.date<=e));
+    headers=["Tarih","Otel","Saat","Pax","Uyruk","İptal Tarihi"];
+    rows=iptaller.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))).map(r=>[fmtDateDot(r.date),r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0),r.nation||"",String(r.updatedAt||"").slice(0,10)]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wch:12},{wch:28},{wch:8},{wch:6},{wch:10},{wch:12}];
+    filename=`rapor6-iptal-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  } else if (num === 7) {
+    // Uyruk dağılımı
+    const byN={};
+    filtered.forEach(r=>{ const n=r.nation||"Diğer"; byN[n]=(byN[n]||0)+1; });
+    headers=["Uyruk","Rezervasyon Sayısı","Yüzde"];
+    const total=filtered.length||1;
+    rows=Object.entries(byN).sort((a,b)=>b[1]-a[1]).map(([n,v])=>[n,v,((v/total)*100).toFixed(1)+"%"]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wch:16},{wch:18},{wch:10}];
+    filename=`rapor7-uyruk-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  } else if (num === 8) {
+    // Saatlik dağılım
+    const byHr={};
+    filtered.forEach(r=>{ const h=String(r.time||"??").slice(0,5); byHr[h]=(byHr[h]||0)+1; });
+    headers=["Saat","Rezervasyon Sayısı"];
+    rows=Object.entries(byHr).sort((a,b)=>a[0].localeCompare(b[0])).map(([h,v])=>[h,v]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws["!cols"]=[{wch:10},{wch:18}];
+    filename=`rapor8-saat-${s}-${e}.xlsx`;
+    applyBorder(ws);
+  }
+
+  wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Rapor"+num);
+  XLSX.writeFile(wb,filename);
+  el.innerHTML=`<div style="color:#4ade80;padding:12px;background:rgba(34,197,94,.1);border-radius:8px;border:1px solid rgba(34,197,94,.3)">
+    ✅ <b>Rapor ${num}</b> indirildi — ${rows.length} kayıt
+  </div>`;
+  showToast(`✅ Rapor ${num} indirildi`);
 }
 
 // ── Oteller ────────────────────────────────────────────────────
@@ -294,12 +471,14 @@ async function calcPerfFromFirebase(startDate, endDate) {
   const perf = {};
   filtered.forEach(r => {
     const pax=(Number(r.adult)||0)+(Number(r.child)||0);
+    const isSale = String(r.satis||"").toUpperCase() === "TRUE";
     [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n => {
-      if(!perf[n]) perf[n]={count:0,pax:0};
+      if(!perf[n]) perf[n]={count:0,pax:0,satis:0,bos:0};
       perf[n].count++; perf[n].pax+=pax;
+      if(isSale) perf[n].satis++; else perf[n].bos++;
     });
   });
-  return Object.entries(perf).map(([name,v])=>({name,count:v.count,pax:v.pax})).sort((a,b)=>b.count-a.count);
+  return Object.entries(perf).map(([name,v])=>({name,count:v.count,pax:v.pax,satis:v.satis,bos:v.bos})).sort((a,b)=>b.count-a.count);
 }
 
 async function calcPlakaFromFirebase(startDate, endDate) {
@@ -533,9 +712,9 @@ function renderAdminRapor(s, e) {
         <div class="bar-chart">${nEnt.map(([l,v])=>bar(l,v,mxN)).join("")}</div>
       </div>
       <div class="panel-card">
-        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏨 Otel (Acenta: ${Object.values(acentaMap).filter(Boolean).length} kayıtlı)</div>
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏨 Otel Yoğunluğu</div>
         <div class="bar-chart">
-          ${hEnt.map(([l,v])=>bar((acentaMap[l]?acentaMap[l]+" • ":"")+l,v,mxH,"blue")).join("")}
+          ${hEnt.map(([l,v])=>bar(l,v,mxH,"blue")).join("")}
         </div>
       </div>
       <div class="panel-card">
@@ -555,13 +734,27 @@ function renderAdminRapor(s, e) {
     ${adminPerfData?.length ? `
     <div class="panel-card">
       <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏆 Personel Performansı</div>
-      ${adminPerfData.map((p,i)=>`
-        <div class="perf-row">
-          <div class="perf-rank ${i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"rank-n"}">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
-          <div class="perf-name">${p.name}</div>
-          <div class="perf-meta">${p.count} seans · ${p.pax} pax</div>
-          <div class="perf-bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.count/mxP*100)}%"></div></div></div>
-        </div>`).join("")}
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border)">
+            <th style="padding:7px 6px;text-align:left;color:var(--text2)">#</th>
+            <th style="padding:7px 6px;text-align:left;color:var(--text2)">TEZGAHTAR ADI</th>
+            <th style="padding:7px 6px;text-align:center;color:var(--gold2)">TOPLAM REZ.</th>
+            <th style="padding:7px 6px;text-align:center;color:#4ade80">SATIŞ</th>
+            <th style="padding:7px 6px;text-align:center;color:#f87171">BOŞ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${adminPerfData.map((p,i)=>`
+            <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+              <td style="padding:8px 6px;color:var(--text2)">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</td>
+              <td style="padding:8px 6px;font-weight:700">${p.name}</td>
+              <td style="padding:8px 6px;text-align:center;font-weight:900;color:var(--gold2)">${p.count}</td>
+              <td style="padding:8px 6px;text-align:center;font-weight:700;color:#4ade80">${p.satis||0}</td>
+              <td style="padding:8px 6px;text-align:center;font-weight:700;color:#f87171">${p.bos||0}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
     </div>` : ""}`;
 }
 
@@ -711,17 +904,146 @@ async function changePin() {
   if (r.success) {
     pinFeedback.innerHTML='<div class="ok">✅ PIN başarıyla değiştirildi. Bir sonraki girişte yeni PIN kullanın.</div>';
     oldPin.value=""; newPin.value=""; newPin2.value="";
-    // Session'ı temizle, yeniden giriş yaptır
     setTimeout(() => { sessionStorage.removeItem("adminAuth"); localStorage.removeItem("adminRemPin"); adminLogout(); }, 2000);
   } else {
     pinFeedback.innerHTML=`<div class="notice">❌ ${r.message||"Hata"}</div>`;
   }
 }
 
+// ── Admin Raporları 1-8 ───────────────────────────────────────
+let _r6CurrentNum = 0, _r6Data = null;
+
+async function _r6GetData() {
+  const s = document.getElementById("r6Start")?.value || todayStr();
+  const e = document.getElementById("r6End")?.value   || todayStr();
+  const all = await getReservations();
+  return { all, filtered: all.filter(r => (!s||r.date>=s)&&(!e||r.date<=e)), s, e };
+}
+
+function _r6Table(headers, rows, colorCols) {
+  const thRow = headers.map(h=>`<th style="padding:8px 8px;text-align:left;background:var(--bg2);color:var(--gold2);font-size:11px;white-space:nowrap">${h}</th>`).join("");
+  const tdRows = rows.map(r=>`<tr>${r.map((c,i)=>`<td style="padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;${colorCols&&colorCols[i]||""}">${c??""}</td>`).join("")}</tr>`).join("");
+  return `<div class="table-wrap"><table style="width:100%;border-collapse:collapse"><thead><tr>${thRow}</tr></thead><tbody>${tdRows||'<tr><td colspan="${headers.length}" style="color:var(--text2);text-align:center;padding:14px">Kayıt yok.</td></tr>'}</tbody></table></div>`;
+}
+
+async function adminRaporGoster(num) {
+  const el = document.getElementById("adminRapor6Result");
+  // Toggle: aynı rapor tekrar seçilirse kapat
+  if (_r6CurrentNum === num) { _r6CurrentNum=0; el.innerHTML=""; return; }
+  _r6CurrentNum = num;
+  el.innerHTML = '<div style="color:var(--text2);text-align:center;padding:14px">Yükleniyor...</div>';
+  const {all, filtered, s, e} = await _r6GetData();
+  let title, html;
+
+  if (num===1) {
+    title="Tüm Rezervasyonlar";
+    const rows=filtered.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.hotel||"").localeCompare(String(b.hotel||""))).map(r=>[fmtDate(r.date),r.hotel||"",(r.time||""),(Number(r.adult)||0)+(Number(r.child)||0),r.nation||"",[r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).join(", "),r.ayak||"",String(r.satis||"").toUpperCase()==="TRUE"?"✅ SATIŞ":"—",r.status||""]);
+    html=_r6Table(["Tarih","Otel","Saat","Pax","Uyruk","Personel","Plaka","Satış","Durum"],rows);
+  } else if (num===2) {
+    title="Otel Bazlı Özet";
+    const byH={};
+    filtered.forEach(r=>{const h=r.hotel||"İsimsiz";if(!byH[h])byH[h]={rez:0,pax:0,satis:0,bos:0};byH[h].rez++;byH[h].pax+=(Number(r.adult)||0)+(Number(r.child)||0);if(String(r.satis||"").toUpperCase()==="TRUE")byH[h].satis++;else byH[h].bos++;});
+    const rows=Object.entries(byH).sort((a,b)=>b[1].rez-a[1].rez).map(([h,v])=>[h,v.rez,v.pax,v.satis,v.bos]);
+    html=_r6Table(["Otel Adı","Rezervasyon","PAX","Satış","Boş"],rows,{3:"color:#4ade80",4:"color:#f87171"});
+  } else if (num===3) {
+    title="Personel Performansı";
+    const perf={};
+    filtered.filter(r=>r.status!=="CANCELLED").forEach(r=>{const isSale=String(r.satis||"").toUpperCase()==="TRUE";[r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n=>{if(!perf[n])perf[n]={rez:0,satis:0,bos:0};perf[n].rez++;if(isSale)perf[n].satis++;else perf[n].bos++;});});
+    const rows=Object.entries(perf).sort((a,b)=>b[1].rez-a[1].rez).map(([n,v])=>[n,v.rez,v.satis,v.bos]);
+    html=_r6Table(["Tezgahtar Adı","Toplam Rezervasyon","Satış","Boş"],rows,{2:"color:#4ade80",3:"color:#f87171"});
+  } else if (num===4) {
+    title="Araç Kullanım";
+    const arac={};
+    filtered.filter(r=>r.status!=="CANCELLED").forEach(r=>{const p=String(r.ayak||"").trim();if(!p)return;if(!arac[p])arac[p]={count:0,days:[]};arac[p].count++;if(!arac[p].days.includes(r.date))arac[p].days.push(r.date);});
+    const rows=Object.entries(arac).sort((a,b)=>b[1].count-a[1].count).map(([p,v])=>[p,v.count,v.days.length]);
+    html=_r6Table(["Plaka","Sefer","Gün"],rows);
+  } else if (num===5) {
+    title="Plakasız / Atanmamış";
+    const rows=filtered.filter(r=>r.status!=="CANCELLED"&&!String(r.ayak||"").trim()).sort((a,b)=>String(a.time||"").localeCompare(String(b.time||""))).map(r=>[fmtDate(r.date),r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0)]);
+    html=_r6Table(["Tarih","Otel","Saat","PAX"],rows);
+  } else if (num===6) {
+    title="İptal Listesi";
+    const rows=all.filter(r=>r.status==="CANCELLED"&&(!s||r.date>=s)&&(!e||r.date<=e)).sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))).map(r=>[fmtDate(r.date),r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0),r.nation||""]);
+    html=_r6Table(["Tarih","Otel","Saat","PAX","Uyruk"],rows);
+  } else if (num===7) {
+    title="Uyruk Dağılımı";
+    const byN={};filtered.forEach(r=>{const n=r.nation||"Diğer";byN[n]=(byN[n]||0)+1;});
+    const total=filtered.length||1;
+    const rows=Object.entries(byN).sort((a,b)=>b[1]-a[1]).map(([n,v])=>[n,v,((v/total)*100).toFixed(1)+"%"]);
+    html=_r6Table(["Uyruk","Rezervasyon","Yüzde"],rows);
+  } else if (num===8) {
+    title="Saatlik Dağılım";
+    const byH={};filtered.forEach(r=>{const h=String(r.time||"??").slice(0,5);byH[h]=(byH[h]||0)+1;});
+    const rows=Object.entries(byH).sort((a,b)=>a[0].localeCompare(b[0])).map(([h,v])=>[h,v]);
+    html=_r6Table(["Saat","Rezervasyon Sayısı"],rows);
+  }
+
+  _r6Data = {title, num, filtered, all, s, e};
+  el.innerHTML = `<div class="panel-card" style="margin-top:8px">
+    <div style="font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+      📋 Rapor ${num}: ${title} &nbsp;·&nbsp; ${filtered.length} kayıt &nbsp;·&nbsp; ${s} → ${e}
+    </div>
+    ${html}
+  </div>`;
+}
+
+async function adminRaporExport(num) {
+  const {all, filtered, s, e} = await _r6GetData();
+  let wb, ws, rows, headers, filename;
+  const thin = { style:"thin", color:{rgb:"555555"} };
+  const border = { top:thin,bottom:thin,left:thin,right:thin };
+  function applyBorder(ws) {
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    ws["!rows"] = Array.from({length:range.e.r+1},()=>({hpx:28}));
+    for (let R=range.s.r;R<=range.e.r;R++) for (let C=range.s.c;C<=range.e.c;C++) {
+      const addr = XLSX.utils.encode_cell({r:R,c:C});
+      if (!ws[addr]) ws[addr]={v:"",t:"s"};
+      ws[addr].s = ws[addr].s||{};
+      ws[addr].s.border = border;
+      if (R===0) ws[addr].s.font = {bold:true};
+    }
+  }
+  if (num===1) {
+    headers=["Tarih","Otel","Saat","Pax","Uyruk","Personel","Plaka","Satış","Durum"];
+    rows=filtered.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))).map(r=>[fmtDateDot(r.date),r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0),r.nation||"",[r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).join(", "),r.ayak||"",String(r.satis||"").toUpperCase()==="TRUE"?"SATIŞ":"Boş",r.status||""]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:12},{wch:28},{wch:8},{wch:6},{wch:10},{wch:28},{wch:12},{wch:8},{wch:12}];filename=`rapor1-tum-${s}-${e}.xlsx`;
+  } else if (num===2) {
+    const byH={};filtered.forEach(r=>{const h=r.hotel||"İsimsiz";if(!byH[h])byH[h]={rez:0,pax:0,satis:0,bos:0};byH[h].rez++;byH[h].pax+=(Number(r.adult)||0)+(Number(r.child)||0);if(String(r.satis||"").toUpperCase()==="TRUE")byH[h].satis++;else byH[h].bos++;});
+    headers=["Otel Adı","Rezervasyon","PAX","Satış","Boş"];rows=Object.entries(byH).sort((a,b)=>b[1].rez-a[1].rez).map(([h,v])=>[h,v.rez,v.pax,v.satis,v.bos]);ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:32},{wch:12},{wch:10},{wch:10},{wch:10}];filename=`rapor2-otel-${s}-${e}.xlsx`;
+  } else if (num===3) {
+    const perf={};filtered.filter(r=>r.status!=="CANCELLED").forEach(r=>{const isSale=String(r.satis||"").toUpperCase()==="TRUE";[r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n=>{if(!perf[n])perf[n]={rez:0,satis:0,bos:0};perf[n].rez++;if(isSale)perf[n].satis++;else perf[n].bos++;});});
+    headers=["Tezgahtar Adı","Toplam Rezervasyon","Satış","Boş"];rows=Object.entries(perf).sort((a,b)=>b[1].rez-a[1].rez).map(([n,v])=>[n,v.rez,v.satis,v.bos]);ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:26},{wch:18},{wch:10},{wch:10}];filename=`rapor3-personel-${s}-${e}.xlsx`;
+  } else if (num===4) {
+    const arac={};filtered.filter(r=>r.status!=="CANCELLED").forEach(r=>{const p=String(r.ayak||"").trim();if(!p)return;if(!arac[p])arac[p]={count:0,days:[]};arac[p].count++;if(!arac[p].days.includes(r.date))arac[p].days.push(r.date);});
+    headers=["Plaka","Sefer","Gün"];rows=Object.entries(arac).sort((a,b)=>b[1].count-a[1].count).map(([p,v])=>[p,v.count,v.days.length]);ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wpx:110},{wch:8},{wch:8}];filename=`rapor4-arac-${s}-${e}.xlsx`;
+  } else if (num===5) {
+    const pl=filtered.filter(r=>r.status!=="CANCELLED"&&!String(r.ayak||"").trim());
+    const mH=Math.max(...pl.map(r=>(r.hotel||"").length),8);
+    headers=["OTEL ADI","SAAT","PAX","PLAKA"];rows=pl.sort((a,b)=>String(a.time||"").localeCompare(String(b.time||""))).map(r=>[r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0),""]);
+    ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:mH+2},{wch:8},{wch:6},{wpx:110}];ws["!rows"]=Array.from({length:rows.length+1},()=>({hpx:35}));filename=`rapor5-plakasiz-${s}-${e}.xlsx`;
+  } else if (num===6) {
+    const ipt=all.filter(r=>r.status==="CANCELLED"&&(!s||r.date>=s)&&(!e||r.date<=e));
+    headers=["Tarih","Otel","Saat","PAX","Uyruk"];rows=ipt.map(r=>[fmtDateDot(r.date),r.hotel||"",r.time||"",(Number(r.adult)||0)+(Number(r.child)||0),r.nation||""]);ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:12},{wch:28},{wch:8},{wch:6},{wch:10}];filename=`rapor6-iptal-${s}-${e}.xlsx`;
+  } else if (num===7) {
+    const byN={};filtered.forEach(r=>{const n=r.nation||"Diğer";byN[n]=(byN[n]||0)+1;});
+    const total=filtered.length||1;headers=["Uyruk","Rezervasyon","Yüzde"];rows=Object.entries(byN).sort((a,b)=>b[1]-a[1]).map(([n,v])=>[n,v,((v/total)*100).toFixed(1)+"%"]);ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:16},{wch:14},{wch:10}];filename=`rapor7-uyruk-${s}-${e}.xlsx`;
+  } else if (num===8) {
+    const byH={};filtered.forEach(r=>{const h=String(r.time||"??").slice(0,5);byH[h]=(byH[h]||0)+1;});
+    headers=["Saat","Rezervasyon"];rows=Object.entries(byH).sort((a,b)=>a[0].localeCompare(b[0])).map(([h,v])=>[h,v]);ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws["!cols"]=[{wch:10},{wch:16}];filename=`rapor8-saat-${s}-${e}.xlsx`;
+  }
+  applyBorder(ws);
+  wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Rapor"+num);XLSX.writeFile(wb,filename);
+  showToast(`✅ Rapor ${num} indirildi`);
+}
+
 // Rapor tab init
 window.addEventListener("DOMContentLoaded",()=>{
   aRStart.value = weekStart(todayStr());
   aREnd.value   = todayStr();
+  if (document.getElementById("r6Start")) {
+    document.getElementById("r6Start").value = weekStart(todayStr());
+    document.getElementById("r6End").value   = todayStr();
+  }
 });
 </script>
 </body>
