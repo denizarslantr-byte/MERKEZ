@@ -197,6 +197,42 @@ async function logAction(action, user, details) {
   await fbPush("logs", { action, user, details: String(details || "").slice(0, 300), date: new Date().toISOString() });
 }
 
+// ── Kullanıcı Yönetimi ────────────────────────────────────────
+async function getUsers() {
+  const data = await fbGet("kullanicilar");
+  if (!data) return [];
+  return Object.entries(data)
+    .map(([key, val]) => ({ ...val, _key: key }))
+    .sort((a, b) => String(a.username||"").localeCompare(String(b.username||""), "tr"));
+}
+
+async function addUser(user) {
+  const id = Date.now();
+  await fbSet(`kullanicilar/${id}`, { ...user, id, status: user.status||"ACTIVE", createdAt: new Date().toISOString() });
+  return id;
+}
+
+async function updateUser(id, data) {
+  const key = (id && id.value !== undefined) ? id.value : id;
+  if (!key || key==="undefined") throw new Error("Kullanıcı ID bulunamadı");
+  await fbUpdate(`kullanicilar/${key}`, data);
+}
+
+async function deleteUser(id) {
+  const key = (id && id.value !== undefined) ? id.value : id;
+  if (!key || key==="undefined") throw new Error("Kullanıcı ID bulunamadı");
+  await fbRemove(`kullanicilar/${key}`);
+}
+
+async function loginUser(username, password) {
+  const users = await getUsers();
+  return users.find(u =>
+    u.status === "ACTIVE" &&
+    String(u.username||"").toLowerCase() === String(username).toLowerCase() &&
+    String(u.password||"") === String(password)
+  ) || null;
+}
+
 // ── Admin Doğrulama ───────────────────────────────────────────
 async function adminAuth(pin) {
   const correctPin = await getPin();
@@ -269,7 +305,11 @@ async function apiPost(action, body = {}) {
 
 
 // ZORUNLU GLOBAL BAĞLANTI — eski common.js / cache çakışmalarını engeller
-window.initFirebase = initFirebase;
+window.getUsers    = getUsers;
+window.addUser     = addUser;
+window.updateUser  = updateUser;
+window.deleteUser  = deleteUser;
+window.loginUser   = loginUser;
 window.getReservations = getReservations;
 window.addReservation = addReservation;
 window.updateReservation = updateReservation;

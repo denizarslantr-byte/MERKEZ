@@ -116,6 +116,8 @@
 <script src="../assets/common.js?v=20260516-boss-dashboard"></script>
 <script src="../assets/firebase-api.js?v=20260516-boss-dashboard"></script>
 <script>
+(function(){const u=JSON.parse(sessionStorage.getItem('pianoUser')||'null');if(!u||!['boss','patron','admin'].includes(u.role)){sessionStorage.removeItem('pianoUser');window.location.replace('../giris/index.html');}window._pianoUser=u;})();
+function logout(){sessionStorage.removeItem('pianoUser');window.location.href='../giris/index.html';}
 let reservations = [], staff = [], hotels = [], plakalar = [];
 
 const today = todayStr();

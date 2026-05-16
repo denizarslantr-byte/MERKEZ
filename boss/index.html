@@ -117,6 +117,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Aria
   <div class="hdr-top">
     <span class="hdr-brand">✦ PATRON PANELİ</span>
     <button class="btn-refresh" onclick="loadAll()" title="Yenile">↺</button>
+    <button class="btn-refresh" onclick="logout()" title="Çıkış" style="font-size:13px">⏏</button>
   </div>
   <div class="hdr-date-row">
     <span class="date-lbl">Tarih</span>
@@ -174,6 +175,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Aria
 <script src="../assets/common.js?v=20260516-patron-mobile"></script>
 <script src="../assets/firebase-api.js?v=20260516-patron-mobile"></script>
 <script>
+// Auth
+(function(){const u=JSON.parse(sessionStorage.getItem('pianoUser')||'null');if(!u||!['patron','admin','boss'].includes(u.role)){sessionStorage.removeItem('pianoUser');window.location.replace('../giris/index.html');}window._pianoUser=u;})();
+function logout(){sessionStorage.removeItem('pianoUser');window.location.href='../giris/index.html';}
+
 let allRes=[], allStaff=[], selHotel='', selFilter='';
 
 const pax    = r=>(Number(r.adult)||0)+(Number(r.child)||0);

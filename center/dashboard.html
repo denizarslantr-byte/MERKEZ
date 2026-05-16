@@ -55,6 +55,8 @@
       <button class="btn-dark btn-sm" onclick="loadAll()" title="Yenile" style="padding:6px 9px;font-size:14px">↺</button>
       <button class="btn-gold btn-sm" onclick="loadAll()" style="padding:7px 14px">Göster</button>
       <div style="flex:1"></div>
+      <span id="userLabel" style="font-size:11px;color:var(--text2)"></span>
+      <button class="btn-dark btn-sm" onclick="logout()" style="padding:6px 10px;font-size:12px" title="Çıkış">⏏ Çıkış</button>
       <div style="display:flex;gap:6px">
         <button class="btn-gold btn-sm" onclick="exportXLS('all')" style="padding:7px 11px" title="O günkü tüm rezervasyonlar">⬇ Tümü</button>
         <button class="btn-gold btn-sm" onclick="exportXLS('new')" style="padding:7px 11px;background:linear-gradient(135deg,#4ade80,#16a34a);color:#052e16" title="İşaretli saat dilimlerindeki yeni rezervasyonlar">⬇ Yeni</button>
@@ -263,6 +265,20 @@
 <script src="../assets/common.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
 <script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
 <script>
+// ── Kullanıcı Doğrulama ──
+(function(){
+  const u = JSON.parse(sessionStorage.getItem('pianoUser')||'null');
+  if (!u || !['merkez','admin'].includes(u.role)) {
+    sessionStorage.removeItem('pianoUser');
+    window.location.replace('../giris/index.html');
+  }
+  window._pianoUser = u;
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('userLabel');
+    if (el && u) el.innerText = '👤 ' + (u.name || u.username);
+  });
+})();
+function logout(){ sessionStorage.removeItem('pianoUser'); window.location.href='../giris/index.html'; }
 showApiWarning();
 
 let reservations = [], staff = [], hotels = [], plakalar = [];

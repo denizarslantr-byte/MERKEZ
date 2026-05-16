@@ -36,8 +36,8 @@
 
   <div id="apiWarning" class="notice" style="display:none"></div>
 
-  <!-- ── Giriş ── -->
-  <section id="pinSection" class="panel-card" style="max-width:460px;margin:0 auto 16px">
+  <!-- ── Giriş (pianoUser auth varsa gösterilmez) ── -->
+  <section id="pinSection" class="panel-card" style="max-width:460px;margin:0 auto 16px;display:none">
     <h2 style="color:var(--gold2);margin-top:0">Admin Girişi</h2>
     <label>Admin PIN</label>
     <input id="adminPin" type="password" placeholder="PIN girin" onkeydown="if(event.key==='Enter')adminLogin()">
@@ -52,10 +52,11 @@
   <section id="adminPanel" style="display:none">
     <div class="panel-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <span style="color:var(--gold2);font-weight:700">⚙️ Admin Paneli</span>
+      <span id="adminUserLabel" style="font-size:11px;color:var(--text2)"></span>
       <div style="flex:1"></div>
       <a href="../center/dashboard.html" class="btn-dark btn-sm" style="text-decoration:none">🏠 Merkez</a>
       <a href="../hotel/login.html"      class="btn-dark btn-sm" style="text-decoration:none">🏨 Otel</a>
-      <button class="btn-red btn-sm" onclick="adminLogout()">Çıkış</button>
+      <button class="btn-red btn-sm" onclick="logout()">⏏ Çıkış</button>
     </div>
 
     <div class="tab-bar">
@@ -65,6 +66,7 @@
       <button id="tab4" class="tab-btn"        onclick="openTab(4)">⚙️ Ayarlar</button>
       <button id="tab5" class="tab-btn"        onclick="openTab(5);loadPlakaRapor()">🚗 Araç Raporu</button>
       <button id="tab6" class="tab-btn"        onclick="openTab(6)" style="background:linear-gradient(135deg,rgba(160,120,48,.4),rgba(241,212,138,.15));border-color:var(--gold)">📥 Admin Raporları</button>
+      <button id="tab7" class="tab-btn"        onclick="openTab(7);loadUsers()">👤 Kullanıcılar</button>
     </div>
 
     <!-- TAB 1: Oteller -->
@@ -227,6 +229,42 @@
       </div>
     </div>
 
+    <!-- TAB 7: Kullanıcılar -->
+    <div id="tabContent7" style="display:none">
+      <div class="panel-card">
+        <h3 style="color:var(--gold2);margin-top:0">➕ Yeni Kullanıcı</h3>
+        <div class="grid grid4">
+          <div><label>Kullanıcı Adı</label><input id="nUname" placeholder="merkez1"></div>
+          <div><label>Şifre</label><input id="nUpass" placeholder="şifre" type="password"></div>
+          <div><label>Ad Soyad</label><input id="nUname2" placeholder="Ad Soyad"></div>
+          <div>
+            <label>Rol</label>
+            <select id="nUrole">
+              <option value="merkez">🏠 Merkez Operasyon</option>
+              <option value="admin">⚙️ Admin</option>
+              <option value="patron">👔 Patron</option>
+              <option value="boss">👁 İzleme (Boss)</option>
+            </select>
+          </div>
+        </div>
+        <br>
+        <button class="btn-gold" onclick="saveNewUser()">+ Kullanıcı Ekle</button>
+      </div>
+      <div class="panel-card table-wrap">
+        <h3 style="color:var(--gold2);margin-top:0">Kullanıcılar</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Kullanıcı Adı</th><th>Ad Soyad</th><th>Rol</th><th>Durum</th><th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--text2)">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </section>
 </div>
 
@@ -259,31 +297,30 @@
 <script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
 <script>
 showApiWarning();
+// ── Kullanıcı Doğrulama ──
+(function(){
+  const u = JSON.parse(sessionStorage.getItem('pianoUser')||'null');
+  if (!u || u.role !== 'admin') {
+    sessionStorage.removeItem('pianoUser');
+    window.location.replace('../giris/index.html');
+  }
+  window._pianoUser = u;
+})();
+function logout(){ sessionStorage.removeItem('pianoUser'); window.location.href='../giris/index.html'; }
 
 let logsCache = [], hotelsData = [], adminRaporData = null, adminPerfData = null;
 
-// ── Giriş ──────────────────────────────────────────────────────
+// ── Giriş (artık pianoUser ile otomatik açılır) ──────────────
 window.addEventListener("load", () => {
-  if (sessionStorage.getItem("adminAuth") === "ok") { openAdmin(); return; }
-  const pin = localStorage.getItem("adminRemPin");
-  if (pin) { adminPin.value = pin; rememberAdmin.checked = true; }
+  // pianoUser auth ile gelindi — panel direkt açık
+  openAdmin();
+  const u = window._pianoUser;
+  const lbl = document.getElementById('adminUserLabel');
+  if (lbl && u) lbl.innerText = '👤 ' + (u.name || u.username);
 });
 
-async function adminLogin() {
-  const pin = adminPin.value.trim();
-  if (!pin) return showToast("PIN girin","err");
-  const ok2 = await adminAuth(pin);
-  const r = { success: ok2 };
-  if (r.success) {
-    sessionStorage.setItem("adminAuth","ok");
-    if (rememberAdmin.checked) localStorage.setItem("adminRemPin", pin);
-    else localStorage.removeItem("adminRemPin");
-    openAdmin();
-  } else {
-    showToast("❌ " + (r.message||"Hatalı PIN"),"err");
-    adminPin.value = "";
-  }
-}
+function adminLogin() {} // Geriye dönük uyumluluk
+function adminLogout() { logout(); }
 
 function openAdmin() {
   pinSection.style.display = "none";
@@ -291,17 +328,9 @@ function openAdmin() {
   loadHotels();
 }
 
-function adminLogout() {
-  sessionStorage.removeItem("adminAuth");
-  localStorage.removeItem("adminRemPin");
-  adminPanel.style.display = "none";
-  pinSection.style.display = "block";
-  adminPin.value = ""; rememberAdmin.checked = false;
-}
-
 // ── Tab ────────────────────────────────────────────────────────
 function openTab(n) {
-  [1,2,3,4,5,6].forEach(i => {
+  [1,2,3,4,5,6,7].forEach(i => {
     document.getElementById("tabContent"+i).style.display = i===n?"block":"none";
     document.getElementById("tab"+i).classList.toggle("active", i===n);
   });
@@ -1036,7 +1065,78 @@ async function adminRaporExport(num) {
   showToast(`✅ Rapor ${num} indirildi`);
 }
 
-// Rapor tab init
+// ── Kullanıcı Yönetimi ─────────────────────────────────────────
+const ROLE_LABELS = {merkez:'🏠 Merkez',admin:'⚙️ Admin',patron:'👔 Patron',boss:'👁 İzleme'};
+let usersData = [];
+
+async function loadUsers() {
+  userTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text2)">Yükleniyor...</td></tr>';
+  usersData = await getUsers();
+  renderUsers();
+}
+
+function renderUsers() {
+  userTableBody.innerHTML = usersData.length
+    ? usersData.map(u => `
+        <tr>
+          <td><code style="color:var(--gold)">${u.username}</code></td>
+          <td>${u.name||"—"}</td>
+          <td><span class="badge pending">${ROLE_LABELS[u.role]||u.role}</span></td>
+          <td><span class="badge ${u.status==="ACTIVE"?"exited":"cancelled"}">${u.status==="ACTIVE"?"AKTİF":"PASİF"}</span></td>
+          <td>
+            <div style="display:flex;gap:5px">
+              <button class="btn-blue btn-sm" onclick="toggleUserStatus('${u.id}','${u.status}')">
+                ${u.status==="ACTIVE"?"⏸ Pasif Yap":"▶ Aktif Yap"}
+              </button>
+              <button class="btn-dark btn-sm" onclick="resetUserPass('${u.id}')">🔑 Şifre</button>
+              <button class="btn-red  btn-sm" onclick="deleteUserUI('${u.id}','${u.username}')">🗑 Sil</button>
+            </div>
+          </td>
+        </tr>`).join("")
+    : '<tr><td colspan="5" style="text-align:center;color:var(--text2)">Kullanıcı yok. Yukarıdan ekleyin.</td></tr>';
+}
+
+async function saveNewUser() {
+  const username = document.getElementById('nUname').value.trim();
+  const password = document.getElementById('nUpass').value.trim();
+  const name     = document.getElementById('nUname2').value.trim();
+  const role     = document.getElementById('nUrole').value;
+  if (!username||!password) return showToast("Kullanıcı adı ve şifre zorunlu","err");
+  if (usersData.find(u=>u.username.toLowerCase()===username.toLowerCase()))
+    return showToast("Bu kullanıcı adı zaten var","err");
+  await addUser({ username, password, name, role });
+  showToast("✅ "+username+" eklendi");
+  document.getElementById('nUname').value='';
+  document.getElementById('nUpass').value='';
+  document.getElementById('nUname2').value='';
+  loadUsers();
+}
+
+async function toggleUserStatus(id, currentStatus) {
+  const newStatus = currentStatus==="ACTIVE" ? "INACTIVE" : "ACTIVE";
+  await updateUser(id, { status: newStatus });
+  showToast(newStatus==="ACTIVE" ? "✅ Aktif yapıldı" : "⏸ Pasif yapıldı");
+  loadUsers();
+}
+
+async function resetUserPass(id) {
+  const newPass = prompt("Yeni şifreyi girin:");
+  if (!newPass || newPass.length < 3) return showToast("Şifre en az 3 karakter olmalı","err");
+  await updateUser(id, { password: newPass });
+  showToast("✅ Şifre güncellendi");
+}
+
+async function deleteUserUI(id, username) {
+  if (!confirm(`"${username}" kullanıcısı silinsin mi?`)) return;
+  // Kendini silemesin
+  if (window._pianoUser && String(window._pianoUser.id) === String(id))
+    return showToast("Kendi hesabınızı silemezsiniz","err");
+  await deleteUser(id);
+  showToast("Kullanıcı silindi");
+  loadUsers();
+}
+
+// ── Rapor tab init
 window.addEventListener("DOMContentLoaded",()=>{
   aRStart.value = weekStart(todayStr());
   aREnd.value   = todayStr();
