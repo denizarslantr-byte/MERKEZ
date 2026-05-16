@@ -97,7 +97,10 @@
           <input type="date" id="aRStart" style="width:135px">
           <span style="color:var(--text2)">—</span>
           <input type="date" id="aREnd"   style="width:135px">
-          <button class="btn-gold btn-sm" onclick="loadAdminRapor()">Uygula</button>
+          <select id="aRHotel" style="width:160px"><option value="">Oteller: Tümü</option></select>
+          <select id="aRPersonel" style="width:160px"><option value="">Personel: Tümü</option></select>
+          <select id="aRPlaka" style="width:160px"><option value="">Plaka: Tümü</option></select>
+          <button class="btn-gold btn-sm" onclick="loadAdminRapor()">Raporla</button>
         </div>
         <div id="adminRaporContent"></div>
       </div>
@@ -319,6 +322,26 @@ async function calcPlakaFromFirebase(startDate, endDate) {
 async function loadHotels() {
   hotelsData = await getHotels();
   renderHotels();
+  fillAdminReportFilters();
+}
+
+async function fillAdminReportFilters() {
+  try {
+    if (document.getElementById("aRHotel")) {
+      const hotelNames = [...new Set((hotelsData||[]).map(h=>h.hotel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
+      aRHotel.innerHTML = '<option value="">Oteller: Tümü</option>' + hotelNames.map(h=>`<option value="${h}">${h}</option>`).join("");
+    }
+    if (document.getElementById("aRPersonel")) {
+      const st = await getStaff();
+      const names = [...new Set((st||[]).map(x=>x.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
+      aRPersonel.innerHTML = '<option value="">Personel: Tümü</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join("");
+    }
+    if (document.getElementById("aRPlaka")) {
+      const ps = await getPlakalar();
+      const names = [...new Set((ps||[]).map(x=>x.plaka).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
+      aRPlaka.innerHTML = '<option value="">Plaka: Tümü</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join("");
+    }
+  } catch(e) {}
 }
 
 function renderHotels() {
@@ -447,6 +470,21 @@ async function loadAdminRapor() {
   ]);
   if (!adminRaporData?.success) { adminRaporContent.innerHTML='<div class="notice">Veri alınamadı.</div>'; return; }
   renderAdminRapor(s, e);
+  await renderAdminDetailedReport(s, e);
+}
+
+async function renderAdminDetailedReport(s, e) {
+  const hotelF = document.getElementById("aRHotel")?.value || "";
+  const personelF = document.getElementById("aRPersonel")?.value || "";
+  const plakaF = document.getElementById("aRPlaka")?.value || "";
+  let rows = await getReservations();
+  rows = rows.filter(r => r.status !== "CANCELLED" && (!s || r.date >= s) && (!e || r.date <= e));
+  if (hotelF) rows = rows.filter(r => r.hotel === hotelF);
+  if (personelF) rows = rows.filter(r => [r.staff1,r.staff2,r.staff3,r.staff4].includes(personelF));
+  if (plakaF) rows = rows.filter(r => String(r.ayak || r.plaka || "") === plakaF);
+  rows.sort((a,b)=>String(a.hotel||"").localeCompare(String(b.hotel||""),"tr") || String(a.date||"").localeCompare(String(b.date||"")) || String(a.time||"").localeCompare(String(b.time||"")));
+  const html = `<div class="panel-card table-wrap" style="margin-top:12px"><div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Araç / Otel / Personel / Plaka Detay Raporu</div><table><thead><tr><th>Tarih</th><th>Otel</th><th>Saat</th><th>Pax</th><th>Plaka</th><th>Personel</th><th>Satış</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtDate(r.date)}</td><td>${r.hotel||""}</td><td><b>${r.time||""}</b></td><td>${(Number(r.adult)||0)+(Number(r.child)||0)}</td><td>${r.ayak||r.plaka||""}</td><td>${[r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).join(", ")}</td><td>${String(r.satis).toUpperCase()==="TRUE"?"SATIŞ":"Boş"}</td></tr>`).join("") || '<tr><td colspan="7" style="text-align:center;color:var(--text2)">Kayıt yok.</td></tr>'}</tbody></table></div>`;
+  adminRaporContent.insertAdjacentHTML("beforeend", html);
 }
 
 function bar(label, val, max, cls="") {
