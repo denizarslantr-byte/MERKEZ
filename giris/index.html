@@ -1,47 +1,86 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>Piano Deri — Giriş</title>
-<link rel="stylesheet" href="../assets/piano-theme.css">
-<style>
-body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:var(--bg)}
-.login-wrap{width:100%;max-width:380px;padding:0 20px}
-.login-card{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:32px 28px;margin-top:20px}
-.login-card h2{color:var(--gold2);margin:0 0 24px;font-size:16px;text-transform:uppercase;letter-spacing:1px}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:6px}
-.field input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px 14px;font-size:15px;outline:none;transition:border-color .2s}
-.field input:focus{border-color:var(--gold)}
-.btn-login{width:100%;background:linear-gradient(135deg,#d6a63f,#a07830);border:none;border-radius:10px;color:#1a0f00;padding:14px;font-size:15px;font-weight:900;cursor:pointer;margin-top:8px;letter-spacing:.5px}
-.btn-login:hover{opacity:.9}
-.err-msg{color:#f87171;font-size:13px;margin-top:12px;text-align:center;min-height:20px}
-.loading-msg{color:var(--gold2);font-size:13px;margin-top:12px;text-align:center}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <title>Piano Deri — Giriş</title>
+  <link rel="stylesheet" href="../assets/piano-theme.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#d6a63f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-wrap { width:100%; max-width:400px; padding:0 16px; }
+    .login-card {
+      background:var(--bg3);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:28px 24px;
+      box-shadow:0 20px 60px rgba(0,0,0,.6);
+    }
+    .login-logo { text-align:center; margin-bottom:24px; }
+    .login-logo .p { font-family:Georgia,serif; font-size:52px; color:var(--gold2); line-height:1; margin-bottom:4px; }
+    .login-logo .name { font-family:Georgia,serif; letter-spacing:5px; font-size:20px; color:var(--text); }
+    .login-logo .sub  { font-size:10px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; margin-top:4px; }
+    .role-tabs { display:flex; gap:6px; margin-bottom:20px; }
+    .role-tab  {
+      flex:1; text-align:center; padding:9px 4px;
+      background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+      border-radius:10px; cursor:pointer; font-size:12px; font-weight:700;
+      color:var(--text2); transition:all .2s;
+    }
+    .role-tab.active {
+      background:linear-gradient(135deg,rgba(216,170,75,.22),rgba(216,170,75,.08));
+      border-color:var(--gold);
+      color:var(--gold2);
+    }
+    .role-tab .ri { font-size:18px; display:block; margin-bottom:3px; }
+    .err-msg { color:#f87171; font-size:12px; text-align:center; margin-top:10px; display:none; }
+    .login-hint { font-size:11px; color:var(--text2); text-align:center; margin-top:14px; line-height:1.6; }
+  </style>
 </head>
 <body>
 <div class="login-wrap">
-  <div class="app-brand">
-    <div class="p">P</div>
-    <div class="name">PIANO DERİ</div>
-    <div class="sub">SİSTEM GİRİŞİ</div>
-  </div>
-
   <div class="login-card">
-    <h2>🔐 Kullanıcı Girişi</h2>
-    <div class="field">
+    <div class="login-logo">
+      <div class="p">P</div>
+      <div class="name">PIANO DERİ</div>
+      <div class="sub">Yönetim Sistemi</div>
+    </div>
+
+    <!-- Rol Seçimi -->
+    <div class="role-tabs" id="roleTabs">
+      <div class="role-tab active" data-role="admin" onclick="selectRole(this)">
+        <span class="ri">⚙️</span>Admin
+      </div>
+      <div class="role-tab" data-role="merkez" onclick="selectRole(this)">
+        <span class="ri">🏠</span>Merkez
+      </div>
+      <div class="role-tab" data-role="patron" onclick="selectRole(this)">
+        <span class="ri">👔</span>Patron
+      </div>
+      <div class="role-tab" data-role="izle" onclick="selectRole(this)">
+        <span class="ri">👁</span>İzle
+      </div>
+    </div>
+
+    <div>
       <label>Kullanıcı Adı</label>
-      <input type="text" id="uname" placeholder="kullanıcı adı" autocomplete="username" autocapitalize="none">
+      <input id="loginUser" placeholder="kullanıcı adı" autocomplete="username"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
     </div>
-    <div class="field">
+    <div style="margin-top:10px">
       <label>Şifre</label>
-      <input type="password" id="upass" placeholder="••••••••" autocomplete="current-password"
-             onkeydown="if(event.key==='Enter') doLogin()">
+      <input id="loginPass" type="password" placeholder="şifre" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="btn-login" onclick="doLogin()">GİRİŞ YAP</button>
-    <div class="err-msg" id="errMsg"></div>
-    <div class="loading-msg" id="loadMsg" style="display:none">Kontrol ediliyor...</div>
+    <div style="display:flex;align-items:center;gap:8px;margin:10px 0 14px;color:var(--text2);font-size:12px">
+      <input type="checkbox" id="rememberMe" style="width:auto">
+      <label for="rememberMe" style="cursor:pointer">Beni hatırla</label>
+    </div>
+    <button class="btn-gold" style="width:100%" onclick="doLogin()" id="loginBtn">Giriş Yap</button>
+    <div class="err-msg" id="errMsg">❌ Hatalı kullanıcı adı veya şifre</div>
+    <div class="login-hint" id="loginHint"></div>
   </div>
 </div>
 
@@ -50,54 +89,102 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;mar
 <script src="../assets/common.js"></script>
 <script src="../assets/firebase-api.js"></script>
 <script>
-// Zaten giriş yapılmışsa yönlendir
-const existing = JSON.parse(sessionStorage.getItem('pianoUser')||'null');
-if (existing) redirectUser(existing.role);
-
-const ROLE_MAP = {
-  merkez:  '../center/dashboard.html',
-  admin:   '../admin/admin.html',
-  patron:  '../patron/index.html',
-  boss:    '../boss/dashboard.html',
-  izleme:  '../boss/dashboard.html'
+// ── Rol yönlendirme tablosu ──────────────────────────────────
+const ROLE_ROUTES = {
+  admin:    '../admin/admin.html',
+  merkez:   '../center/dashboard.html',
+  patron:   '../patron/index.html',
+  boss:     '../boss/index.html',
+  izle:     '../boss/index.html',
+  yonetici: '../manager/index.html',
+  bolge:    '../region/index.html',
 };
 
-function redirectUser(role) {
-  const url = ROLE_MAP[role] || '../hotel/login.html';
-  window.location.replace(url);
+let selectedRole = 'admin';
+
+function selectRole(el) {
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  selectedRole = el.dataset.role;
 }
 
+// Önceki oturumu kontrol et
+(function checkSession(){
+  const u = JSON.parse(localStorage.getItem('pianoUser') || 'null');
+  if(u && u.role && ROLE_ROUTES[u.role]) {
+    window.location.replace(ROLE_ROUTES[u.role]);
+  }
+  // Beni hatırla
+  const saved = localStorage.getItem('pianoRemember');
+  if(saved) {
+    try {
+      const d = JSON.parse(saved);
+      document.getElementById('loginUser').value = d.u || '';
+      document.getElementById('loginPass').value = d.p || '';
+      document.getElementById('rememberMe').checked = true;
+      // Doğru rolü seç
+      if(d.role) {
+        const el = document.querySelector(`[data-role="${d.role}"]`);
+        if(el) selectRole(el);
+      }
+    } catch(e) {}
+  }
+})();
+
 async function doLogin() {
-  const username = document.getElementById('uname').value.trim();
-  const password = document.getElementById('upass').value;
-  const errEl    = document.getElementById('errMsg');
-  const loadEl   = document.getElementById('loadMsg');
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errMsg');
+  err.style.display = 'none';
 
-  errEl.innerText = '';
-  if (!username || !password) { errEl.innerText = 'Kullanıcı adı ve şifre girin.'; return; }
+  if(!username || !password) {
+    err.textContent = '❌ Kullanıcı adı ve şifre gerekli';
+    err.style.display = 'block';
+    return;
+  }
 
-  loadEl.style.display = 'block';
+  btn.textContent = 'Giriş yapılıyor...';
+  btn.disabled = true;
 
   try {
-    const user = await loginUser(username, password);
-    if (user) {
-      sessionStorage.setItem('pianoUser', JSON.stringify({
-        id:       user.id,
-        username: user.username,
-        name:     user.name || user.username,
-        role:     user.role
-      }));
-      redirectUser(user.role);
-    } else {
-      errEl.innerText = '❌ Kullanıcı adı veya şifre hatalı.';
-      document.getElementById('upass').value = '';
+    // 1. Admin PIN kontrolü (özel durum: kullanıcı adı "admin" + PIN 1907)
+    if(username.toLowerCase() === 'admin') {
+      const correctPin = await getPin();
+      if(String(password) === String(correctPin)) {
+        const adminUser = { id:'admin', username:'admin', role:'admin', name:'Admin' };
+        localStorage.setItem('pianoUser', JSON.stringify(adminUser));
+        if(document.getElementById('rememberMe').checked)
+          localStorage.setItem('pianoRemember', JSON.stringify({u:username, p:password, role:'admin'}));
+        window.location.replace('../admin/admin.html');
+        return;
+      }
     }
+
+    // 2. Firebase kullanicilar tablosundan kontrol
+    const user = await loginUser(username, password);
+    if(user) {
+      localStorage.setItem('pianoUser', JSON.stringify(user));
+      if(document.getElementById('rememberMe').checked)
+        localStorage.setItem('pianoRemember', JSON.stringify({u:username, p:password, role:user.role}));
+      else
+        localStorage.removeItem('pianoRemember');
+      const route = ROLE_ROUTES[user.role] || '../center/dashboard.html';
+      window.location.replace(route);
+      return;
+    }
+
+    // 3. Hata
+    err.textContent = '❌ Hatalı kullanıcı adı veya şifre';
+    err.style.display = 'block';
   } catch(e) {
-    errEl.innerText = '❌ Bağlantı hatası. Tekrar deneyin.';
+    err.textContent = '❌ Bağlantı hatası: ' + e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = 'Giriş Yap';
+    btn.disabled = false;
   }
-  loadEl.style.display = 'none';
 }
 </script>
 </body>
 </html>
-
