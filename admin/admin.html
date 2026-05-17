@@ -52,7 +52,6 @@
       <button id="tab4" class="tab-btn"        onclick="openTab(4)">⚙️ Ayarlar</button>
       <button id="tab5" class="tab-btn"        onclick="openTab(5);loadPlakaRapor()">🚗 Araç Raporu</button>
       <button id="tab6" class="tab-btn"        onclick="openTab(6)" style="background:rgba(83,149,255,.12);border-color:rgba(83,149,255,.3);color:#93c5fd">📥 İçe Aktar</button>
-      <button id="tab7" class="tab-btn"        onclick="openTab(7);loadAdminUsers()">👥 Kullanıcılar</button>
     </div>
 
     <!-- TAB 1: Oteller -->
@@ -208,30 +207,6 @@
     </div>
 
     <!-- TAB 6: İçe Aktar -->
-    <!-- TAB 7: Kullanıcılar / Personeller -->
-    <div id="tabContent7" style="display:none">
-      <div class="panel-card">
-        <h3 style="color:var(--gold2);margin-top:0">👥 Kullanıcı / Personel Yönetimi</h3>
-        <div class="grid grid4">
-          <div><label>Ad Soyad</label><input id="adminUserName" placeholder="Personel tam adı"></div>
-          <div><label>Grup</label><select id="adminUserGrup"><option value="">Grup Yok</option><option value="GRUP1">GRUP1</option><option value="GRUP2">GRUP2</option></select></div>
-          <div><label>Durum</label><select id="adminUserStatus"><option value="ACTIVE">AKTİF</option><option value="PASSIVE">PASİF</option></select></div>
-          <div style="align-self:flex-end"><button class="btn-gold" style="width:100%" onclick="adminAddUser()">+ Kullanıcı Ekle</button></div>
-        </div>
-        <br>
-        <input type="file" id="adminUserImportFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="adminImportUsersExcel(event)">
-        <button class="btn-dark" onclick="document.getElementById('adminUserImportFile').click()">📥 Excelden Kullanıcı İçe Aktar</button>
-        <button class="btn-dark" onclick="adminDownloadUsersTemplate()">⬇ Kullanıcı Şablonu</button>
-      </div>
-      <div class="panel-card table-wrap">
-        <h3 style="color:var(--gold2);margin-top:0">Kullanıcılar / Personeller</h3>
-        <table>
-          <thead><tr><th>Ad Soyad</th><th>Grup</th><th>Durum</th><th>İşlemler</th></tr></thead>
-          <tbody id="adminUsersBody"><tr><td colspan="4" style="text-align:center;color:var(--text2)">Yükleniyor...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
     <div id="tabContent6" style="display:none">
 
       <!-- Şablon Bilgi Kutusu -->
@@ -240,12 +215,10 @@
           <div style="flex:1;min-width:260px">
             <h3 style="color:#93c5fd;margin-top:0;font-size:14px">📋 Excel / CSV Şablon Formatı</h3>
             <div style="font-size:12px;color:var(--text2);line-height:1.8">
-              Merkez ekrandan alınan Excel şablonu bu sırada okunur:<br>
-              <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px">TARIH · ACENTAADI · GRUPBASKANADI · KARTNO · UYRUK · SERVISCIADI · SERVISCIADI2 · SERVISCIADI3 · SERVISCIADI4 · PAX · PAXCOCUK · GIRIS · CIKIS · AYAK · SUBEKOD · SUBEADI</code><br>
-              <b style="color:var(--text)">Zorunlu:</b> TARIH · ACENTAADI · GIRIS &nbsp;|&nbsp;
-              <b style="color:var(--text)">Tarih formatı:</b> <code style="background:rgba(0,0,0,.3);padding:1px 6px;border-radius:4px">17.05.2026</code> &nbsp;|&nbsp;
-              <b style="color:var(--text)">Saat:</b> <code style="background:rgba(0,0,0,.3);padding:1px 6px;border-radius:4px">16:00</code><br>
-              Not: ACENTAKOD sütunu bu formatta yoktur. KARTNO kart bilgisi, GIRIS rezervasyon saati, CIKIS çıkış saati olarak aktarılır.
+              Sütun sırası önemli değil — sistem otomatik eşleştirir.<br>
+              <b style="color:var(--text)">Zorunlu:</b> Tarih · Saat · Otel &nbsp;|&nbsp;
+              <b style="color:var(--text)">Tarih formatı:</b> <code style="background:rgba(0,0,0,.3);padding:1px 6px;border-radius:4px">2026-01-15</code> veya <code style="background:rgba(0,0,0,.3);padding:1px 6px;border-radius:4px">15.01.2026</code><br>
+              <b style="color:var(--text)">Satış sütunu:</b> EVET / HAYIR &nbsp;|&nbsp; Aktarılan rezervasyonlar merkez ekranda tarihe göre görünür.
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
@@ -303,7 +276,7 @@
           <!-- Tablo -->
           <div class="table-wrap" style="max-height:380px;overflow-y:auto">
             <table id="importPreviewTable">
-              <thead><tr><th>#</th><th>Tarih</th><th>Saat</th><th>Otel</th><th>Yet.</th><th>Çoc.</th><th>Uyruk</th><th>Satış</th><th>Ayak</th><th>Kart</th><th>Çıkış</th><th>Durum</th></tr></thead>
+              <thead><tr><th>#</th><th>Tarih</th><th>Saat</th><th>Otel</th><th>Yet.</th><th>Çoc.</th><th>Uyruk</th><th>Satış</th><th>Plaka</th><th>Kart</th><th>Durum</th></tr></thead>
               <tbody id="importPreviewBody"></tbody>
             </table>
           </div>
@@ -407,14 +380,13 @@ function adminLogout() {
 
 // ── Tab ────────────────────────────────────────────────────────
 function openTab(n) {
-  [1,2,3,4,5,6,7].forEach(i => {
+  [1,2,3,4,5,6].forEach(i => {
     const tc = document.getElementById("tabContent"+i);
     if(tc) tc.style.display = i===n?"block":"none";
     const tb = document.getElementById("tab"+i);
     if(tb) tb.classList.toggle("active", i===n);
   });
   if (n===2) { loadAdminRapor(); populateAdminRaporFilters(); }
-  if (n===7) loadAdminUsers();
 }
 
 // ── Oteller ────────────────────────────────────────────────────
@@ -922,24 +894,17 @@ function ipNum(v) { const n = parseInt(String(v || '').trim()); return isNaN(n) 
 
 /* ── Otomatik sütun eşleştirme ── */
 const IP_ALIASES = {
-  acentaKod:['acentakod','acenta kod','acenta_kod'],
-  date:    ['tarih','date','rezervasyon tarihi','res tarihi','gün','gun'],
-  hotel:   ['acentaadi','acenta adı','acenta adi','otel','hotel','otel adı','otel adi','otel ismi'],
-  notes:   ['grupbaskanadi','grup başkan adı','grup baskan adi','not','note','notlar','açıklama','aciklama','özel'],
-  kart:    ['kartno','kart no','kart','card','ödeme tipi','odeme tipi','kart tipi'],
-  nation:  ['uyruk','milliyet','ülke','ulke','nation','nationality'],
-  staff1:  ['servisciadi','servisci adi','personel','görevli','gorevli','staff','rehber'],
-  staff2:  ['servisciadi2','servisci adi 2','personel2','görevli2','gorevli2','staff2','rehber2'],
-  staff3:  ['servisciadi3','servisci adi 3','personel3','görevli3','gorevli3','staff3','rehber3'],
-  staff4:  ['servisciadi4','servisci adi 4','personel4','görevli4','gorevli4','staff4','rehber4'],
-  adult:   ['pax','yetişkin','yetiskin','adult','büyük','buyuk','yet'],
-  child:   ['paxcocuk','pax çocuk','pax cocuk','çocuk','cocuk','child','küçük','kucuk'],
-  time:    ['giris','giriş','saat','time','rezervasyon saati','res saati','zaman'],
-  cikis:   ['cikis','çıkış','cikti saati','çıktı saati','exit'],
-  ayak:    ['ayak','plaka','araç','arac','plate','taşıt'],
-  subeKod: ['subekod','şube kod','sube kod'],
-  subeAdi: ['subeadi','şube adı','sube adi'],
-  satis:   ['satış','satis','sale','sold','ödeme','odeme'],
+  date:   ['tarih','date','rezervasyon tarihi','res tarihi','gün','gun'],
+  time:   ['saat','time','rezervasyon saati','res saati','zaman'],
+  hotel:  ['otel','hotel','otel adı','otel adi','otel ismi'],
+  adult:  ['yetişkin','yetiskin','adult','büyük','buyuk','yet'],
+  child:  ['çocuk','cocuk','child','küçük','kucuk'],
+  nation: ['uyruk','milliyet','ülke','ulke','nation','nationality'],
+  satis:  ['satış','satis','sale','sold','ödeme','odeme'],
+  ayak:   ['plaka','araç','arac','plate','taşıt'],
+  notes:  ['not','note','notlar','açıklama','aciklama','özel'],
+  staff1: ['personel','görevli','gorevli','staff','rehber'],
+  kart:   ['kart','card','ödeme tipi','odeme tipi','kart tipi'],
 };
 function ipAutoMap(headers) {
   const map = {};
@@ -963,10 +928,6 @@ function ipProcessRows(headers, rawRows) {
     const ayak  = String(g(row,'ayak') || '').trim();
     const notes = String(g(row,'notes') || '').trim();
     const staff1= String(g(row,'staff1') || '').trim();
-    const staff2= String(g(row,'staff2') || '').trim();
-    const staff3= String(g(row,'staff3') || '').trim();
-    const staff4= String(g(row,'staff4') || '').trim();
-    const ciktiSaati = ipTime(g(row,'cikis'));
     const kart  = String(g(row,'kart') || '').trim();
     const errs = [], warns = [];
     if (!date)  errs.push('Tarih boş');
@@ -974,7 +935,7 @@ function ipProcessRows(headers, rawRows) {
     if (!hotel) errs.push('Otel boş');
     if (date  && !/^\d{4}-\d{2}-\d{2}$/.test(date))  warns.push('Tarih format?');
     if (time  && !/^\d{2}:\d{2}$/.test(time))          warns.push('Saat format?');
-    return { _row: i+2, date, time, hotel, adult, child, nation, satis, ayak, notes, staff1, staff2, staff3, staff4, ciktiSaati, kart,
+    return { _row: i+2, date, time, hotel, adult, child, nation, satis, ayak, notes, staff1, kart,
       _err: errs, _warn: warns, _st: errs.length ? 'err' : warns.length ? 'warn' : 'ok' };
   });
 }
@@ -1041,11 +1002,9 @@ function ipShowPreview(fname) {
       <td>${r.nation}</td>
       <td>${r.satis ? '💰 EVET' : '—'}</td>
       <td style="font-size:11px;color:var(--text2)">${r.ayak || '—'}</td>
-      <td style="font-size:11px;color:var(--text2)">${r.kart || '—'}</td>
-      <td style="font-size:11px;color:var(--text2)">${r.ciktiSaati || '—'}</td>
       <td>${statusBadge}</td>
     </tr>`;
-  }).join('') + (data.length > 300 ? `<tr><td colspan="12" style="text-align:center;color:var(--text2);padding:10px">... ve ${data.length - 300} kayıt daha</td></tr>` : '');
+  }).join('') + (data.length > 300 ? `<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:10px">... ve ${data.length - 300} kayıt daha</td></tr>` : '');
 }
 
 /* ── İptal ── */
@@ -1102,8 +1061,7 @@ window.importBaslat = async () => {
         adult: r.adult, child: r.child,
         nat: r.nation, nation: r.nation,
         satis: r.satis, ayak: r.ayak, notes: r.notes,
-        staff1: r.staff1, staff2: r.staff2, staff3: r.staff3, staff4: r.staff4,
-        ciktiSaati: r.ciktiSaati, kart: r.kart,
+        staff1: r.staff1, kart: r.kart,
         status: 'PENDING', girdi: false, cikti: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -1138,32 +1096,29 @@ window.importBaslat = async () => {
 /* ── Şablon İndir ── */
 window.importSablonIndir = () => {
   const wb = XLSX.utils.book_new();
-  const headers = [
-    'TARIH','ACENTAADI','GRUPBASKANADI','KARTNO','UYRUK',
-    'SERVISCIADI','SERVISCIADI2','SERVISCIADI3','SERVISCIADI4',
-    'PAX','PAXCOCUK','GIRIS','CIKIS','AYAK','SUBEKOD','SUBEADI'
-  ];
   const ws = XLSX.utils.aoa_to_sheet([
-    headers,
-    ['17.05.2026', 'COMFORT BEACH OTEL', 'PIANO REHBER', '2057', 'BELARUS', 'HALIL HASANOGLU', 'TAMILA TEZ.', '', '', 2, 0, '16:00', '', '1.AYAK', '1', 'MERKEZ'],
-    ['17.05.2026', 'CLUB SALIMA ( BAIAA)', 'PIANO REHBER', '2060', 'RUS', 'CEMAL DOĞAN', 'ALFIIA BIKBOVA', '', '', 4, 0, '16:00', '', '1.AYAK', '1', 'MERKEZ'],
-    ['17.05.2026', 'ARMAS GUL BEACH OTEL', 'PIANO REHBER', '', 'RUS', 'TIMUR EYVAZOV', '', '', '', 1, 0, '16:00', '16:57', '1.AYAK', '1', 'MERKEZ']
+    ['Tarih','Saat','Otel','Yetişkin','Çocuk','Uyruk','Satış','Plaka','Not','Personel','Kart Tipi'],
+    ['2026-01-15','10:30','Akka Alinda Hotel',2,1,'RUS','EVET','07 ABC 111','VIP müşteri','Ahmet','VISA'],
+    ['2026-01-15','12:00','Rixos Premium Belek',3,0,'ALM','HAYIR','','','Mehmet','MASTER'],
+    ['2026-01-16','14:30','Titanic Deluxe Golf',4,2,'UKR','EVET','07 DEF 222','','Ali','NAKİT'],
+    ['2026-01-16','09:00','Cornelia Diamond',2,0,'KAZ','HAYIR','','Sabah turu','',''],
+    ['2026-01-17','11:00','Delphin Imperial',3,1,'RUS','EVET','07 GHI 333','','Hasan','VISA'],
   ]);
-  ws['!cols'] = [{wch:12},{wch:28},{wch:18},{wch:10},{wch:12},{wch:20},{wch:20},{wch:20},{wch:20},{wch:8},{wch:10},{wch:8},{wch:8},{wch:10},{wch:10},{wch:14}];
-  XLSX.utils.book_append_sheet(wb, ws, 'sayfa1');
-  XLSX.writeFile(wb, 'piano-deri-merkez-sablon.xlsx');
-  showToast('✅ Merkez şablonu indirildi');
+  ws['!cols'] = [{wch:14},{wch:8},{wch:26},{wch:10},{wch:8},{wch:10},{wch:8},{wch:14},{wch:20},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Rezervasyonlar');
+  XLSX.writeFile(wb, 'piano_deri_sablon.xlsx');
+  showToast('✅ Şablon indirildi');
 };
 
 /* ── Önizleme İndir ── */
 window.importOnizlemeIndir = () => {
   if (!window._importData || !window._importData.length) return;
   const wb = XLSX.utils.book_new();
-  const rows = [['#','Tarih','Saat','Otel','Yet.','Çoc.','Uyruk','Satış','Ayak','Kart','Çıkış','Durum']];
+  const rows = [['#','Tarih','Saat','Saat','Otel','Yet.','Çoc.','Uyruk','Satış','Plaka','Kart','Durum']];
   window._importData.forEach(r => rows.push([
     r._row, r.date, r.time, r.hotel, r.adult, r.child,
     r.nation, r.satis ? 'EVET' : 'HAYIR', r.ayak,
-    r.kart || '—', r.ciktiSaati || '', r._st === 'ok' ? 'Hazır' : r._st === 'warn' ? 'Uyarı' : 'Hata'
+    r.kart || '—', r._st === 'ok' ? 'Hazır' : r._st === 'warn' ? 'Uyarı' : 'Hata'
   ]));
   const ws = XLSX.utils.aoa_to_sheet(rows);
   XLSX.utils.book_append_sheet(wb, ws, 'Önizleme');
