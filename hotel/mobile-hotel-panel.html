@@ -5,22 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piano Deri Otel V6.0</title>
   <link rel="stylesheet" href="../assets/piano-theme.css">
-  <meta name="mobile-web-app-capable" content="yes">
-
   <!-- PWA -->
-  <link rel="manifest" href="/hotel/manifest.json">
-  <meta name="theme-color" content="#d6a63f">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#d8aa4b">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Piano Otel">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <script>
-    if("serviceWorker" in navigator){
-      navigator.serviceWorker.register("/hotel/sw.js",{scope:"/hotel/"})
-        .then(r=>console.log("PWA OK"))
-        .catch(e=>console.log("PWA ERR",e));
-    }
-  </script>
+  <meta name="apple-mobile-web-app-title" content="PD Otel">
+  <link rel="apple-touch-icon" href="../icons/otel-192.png">
 </head>
 <body>
 <div class="app" style="max-width:900px">
@@ -220,7 +212,7 @@ function renderList(list) {
     const exited    = String(r.cikti).toUpperCase()==="TRUE";
     const inside2   = String(r.girdi).toUpperCase()==="TRUE" && !exited;
     const cancelled = r.status==="CANCELLED";
-    const hasCenterOperation = inside2 || exited || String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" || [r.staff1,r.staff2,r.staff3,r.staff4,r.ayak,r.plaka,r.kart].some(Boolean);
+    const hasCenterOperation = inside2 || exited || String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" || [r.staff1,r.staff2,r.staff3,r.staff4,r.plaka,r.kart].some(Boolean);
     const canEdit   = !cancelled && !hasCenterOperation;
     const canCancel = !cancelled && !hasCenterOperation;
     const canDelete = !cancelled && !hasCenterOperation;
@@ -231,28 +223,29 @@ function renderList(list) {
     else if (cancelled) statusEl='<span class="badge cancelled">❌ İPTAL</span>';
     else                statusEl='<span class="badge pending">⏳ BEKLİYOR</span>';
 
+    const staffList = [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean);
+
     return `
-      <div class="res-card" style="border-left:4px solid ${exited?'#35d979':inside2?'#f59e0b':cancelled?'#555':'#3a3f5c'};${cancelled?"opacity:.55":""}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:10px">
+      <div class="res-card" style="${cancelled?"opacity:.55":""}">
+        <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+          <div>
             <div class="res-time">${r.time}</div>
-            <div style="font-size:11px;color:var(--text2)">${r.date}</div>
+            <div class="res-detail" style="font-size:10px">${r.date}</div>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:14px;margin-bottom:3px">
+              ${r.adult} yetişkin${Number(r.child)>0?" / "+r.child+" çocuk":""}
+              · <b>${pax2} kişi</b>
+            </div>
+            <div class="res-detail">🌍 ${r.nation}</div>
+            ${r.notes?`<div class="res-detail" style="font-style:italic">💬 ${r.notes}</div>`:""}
+
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
             ${statusEl}
-            ${String(r.satis).toUpperCase()==='TRUE' && String(r.cikti).toUpperCase()==='TRUE' ? '<span style="background:rgba(96,165,250,.2);border:1px solid rgba(96,165,250,.5);color:#93c5fd;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">SATIŞ</span>' : String(r.cikti).toUpperCase()==='TRUE' ? '<span style="color:#f87171;font-size:12px;font-weight:800;">BOŞ</span>' : ''}
+            ${String(r.satis).toUpperCase()==='TRUE' && String(r.cikti).toUpperCase()==='TRUE' ? '<span style="background:rgba(234,179,8,.25);border:1px solid rgba(234,179,8,.6);color:#fde68a;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">💰 SATIŞ</span>' : ''}
           </div>
         </div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px">
-          👤 ${pax2} kişi
-          ${Number(r.child)>0?`<span style="font-size:12px;font-weight:400;color:var(--text2);margin-left:6px">(${r.adult} yet. / ${r.child} çoc.)</span>`:''}
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          <span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">🌍 ${r.nation||'—'}</span>
-          ${r.kart?`<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">💳 ${r.kart}</span>`:''}
-          ${r.ayak?`<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">🚗 ${r.ayak}</span>`:''}
-        </div>
-        ${r.notes?`<div class="res-detail" style="font-style:italic;margin-bottom:8px">📝 ${r.notes}</div>`:''}
         <div class="res-actions">
           ${canEdit   ? `<button class="btn-blue btn-sm" onclick='editRes(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✏️ Düzelt</button>` : ""}
           ${canCancel ? `<button class="btn-red  btn-sm" onclick="cancelRes('${r.id}')">❌ İptal</button>` : ""}
@@ -298,7 +291,7 @@ showSec("entry");
 // Otel paneli otomatik yenileme: 10 saniye
 setInterval(() => {
   if (!document.hidden) loadReservations();
-}, 10000);
+}, 15000);
 </script>
 
 <script>
