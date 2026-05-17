@@ -29,6 +29,13 @@
   .time-slot-check { width:18px;height:18px;cursor:pointer;accent-color:var(--gold2);vertical-align:middle;margin-left:auto; }
   .time-title-row { display:flex;align-items:center;gap:8px; }
   </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#d6a63f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Piano Deri">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}</script>
 </head>
 <body>
 <div class="app">
@@ -654,10 +661,10 @@ function renderReservations() {
         <span>⏰ ${t}</span>
         <span style="font-size:11px;font-weight:400;color:var(--text2);margin-left:7px">${grp[t].length} rezervasyon</span>
         <span style="flex:1"></span>
-        ${!isDone ? `<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;margin:0">
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;margin:0">
           <input type="checkbox" class="time-slot-check" data-time="${t}" title="Bu saati Yeni rapora ekle">
           <span style="font-size:10px">Rapora ekle</span>
-        </label>` : ""}
+        </label>
       </div>
       <div class="panel-card table-wrap" ${isDone?'style="opacity:.72"':""}>
         <table>
