@@ -1,410 +1,374 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<title>Piano Deri — Patron</title>
-<style>
-:root{
-  --gold:#d6a63f;--gold2:#ffe58d;
-  --bg:#07080f;--bg2:#0f1017;--bg3:#14161f;--card:#181b27;
-  --border:#252836;--text:#f0f0f2;--text2:#9597a5;
-  --green:#35d979;--blue:#68d4ff;--red:#ff5f6e;--warn:#f59e0b;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Arial,sans-serif;min-height:100vh;padding-bottom:80px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Piano Deri — Patron</title>
+  <style>
+    :root{--gold:#d8aa4b;--gold2:#f1d48a;--bg:#080808;--bg2:rgba(18,19,24,.98);--bg3:rgba(28,29,38,.95);--text:#f0f0f0;--text2:#9a9a9a;--b:rgba(216,170,75,.3);--b2:rgba(255,255,255,.08)}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:14px;min-height:100vh}
 
-/* ── HEADER ── */
-.hdr{background:linear-gradient(180deg,#0a0b14,var(--bg2));border-bottom:1px solid var(--border);padding:14px 16px 10px;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
-.hdr-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.hdr-brand{font-size:11px;letter-spacing:3px;color:var(--gold2);font-weight:900;flex:1}
-.hdr-date-row{display:flex;align-items:center;gap:8px}
-.date-lbl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
-.date-input{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font-size:13px;width:140px}
-.date-input::-webkit-calendar-picker-indicator{filter:invert(0.7) brightness(1.5);opacity:.8;cursor:pointer}
-.date-display{font-size:14px;font-weight:900;color:var(--gold2)}
-.btn-refresh{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:7px 11px;font-size:15px;cursor:pointer}
-.btn-show{background:linear-gradient(135deg,#d6a63f,#a07830);border:none;border-radius:8px;color:#1a0f00;padding:7px 14px;font-size:13px;font-weight:900;cursor:pointer}
+    /* ── Banner ── */
+    .banner{background:linear-gradient(135deg,#0a0a14 0%,#12101a 40%,#1a1200 100%);border-bottom:1px solid var(--b);padding:22px 16px 18px;text-align:center;position:relative;overflow:hidden}
+    .banner::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(216,170,75,.18) 0%,transparent 70%);pointer-events:none}
+    .banner-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px}
+    .banner-p{font-family:Georgia,serif;font-size:52px;color:var(--gold2);line-height:1;text-shadow:0 0 30px rgba(216,170,75,.5)}
+    .banner-title{text-align:left}
+    .banner-name{font-family:Georgia,serif;font-size:18px;letter-spacing:4px;color:var(--text)}
+    .banner-sub{font-size:10px;letter-spacing:3px;color:var(--gold);margin-top:3px}
+    .banner-line{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:10px auto 0}
+    .banner-tagline{font-size:11px;color:var(--text2);letter-spacing:1px;margin-top:8px}
 
-/* ── BOTTOM NAV ── */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
-.bnav-btn{flex:1;border:none;background:transparent;color:var(--text2);padding:12px 8px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.3px;text-transform:uppercase}
-.bnav-btn .ico{font-size:20px;line-height:1}
-.bnav-btn.active{color:var(--gold2)}
-.bnav-btn.active .ico{filter:drop-shadow(0 0 6px rgba(214,166,63,.7))}
+    /* ── Header / Nav ── */
+    .hdr{background:var(--bg2);border-bottom:1px solid var(--b);padding:10px 14px;position:sticky;top:0;z-index:100;backdrop-filter:blur(14px)}
+    .hdr-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .rbtn{background:rgba(216,170,75,.12);border:1px solid var(--b);color:var(--gold2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0}
+    .rbtn.spin{animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .darr{background:rgba(255,255,255,.06);border:1px solid var(--b2);color:var(--text2);border-radius:7px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;flex-shrink:0}
+    .darr:active{background:rgba(255,255,255,.14)}
+    .dlbl{flex:1;text-align:center;cursor:pointer;min-width:0}
+    .dlbl .date{font-size:14px;font-weight:700;color:var(--gold2)}
+    .dlbl .day{font-size:10px;color:var(--text2);margin-top:1px}
+    .tbtn{background:rgba(216,170,75,.1);border:1px solid rgba(216,170,75,.3);color:var(--gold);border-radius:7px;padding:0 10px;height:34px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+    #hd{position:absolute;opacity:0;width:0;height:0}
 
-/* ── SECTIONS ── */
-.page{display:none;padding:12px 14px}
-.page.active{display:block}
+    /* Tab bar */
+    .tab-bar{display:flex;gap:0;border-bottom:1px solid var(--b2);background:var(--bg2)}
+    .tbb{flex:1;padding:9px 4px;text-align:center;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none}
+    .tbb.active{color:var(--gold2);border-bottom-color:var(--gold)}
 
-/* ── ÖZET KARTLAR ── */
-.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.sum-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;transition:border-color .2s}
-.sum-card.active-filter{border-color:var(--gold);background:rgba(214,166,63,.08)}
-.sum-val{font-size:26px;font-weight:900;color:var(--gold2);line-height:1}
-.sum-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-top:5px;font-weight:700}
-.sum-card.sc-inside .sum-val{color:#fde68a}
-.sum-card.sc-done   .sum-val{color:var(--green)}
-.sum-card.sc-satis  .sum-val{color:var(--blue)}
-.sum-card.sc-bos    .sum-val{color:var(--red)}
+    /* ── Özet (6 kart) ── */
+    .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px;background:#0d0d1a;border-bottom:1px solid var(--b2)}
+    .sc{background:var(--bg3);border:1px solid var(--b2);border-radius:11px;padding:9px 4px;text-align:center}
+    .sv{font-size:20px;font-weight:900;line-height:1.1;margin-bottom:2px}
+    .sl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+    .c0{color:var(--gold2)}.c1{color:#d1d5db}.c2{color:#fde68a}.c3{color:#bbf7d0}.c4{color:#f87171}.c5{color:#7dd3fc}
 
-/* ── OTEL FİLTRE ── */
-.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{white-space:nowrap;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text2);padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
-.chip.active{background:rgba(214,166,63,.15);border-color:var(--gold);color:var(--gold2)}
+    .content{padding:10px 12px 80px}
 
-/* ── SAAT BAŞLIĞI ── */
-.time-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg3);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;margin:12px 0 6px}
-.time-head .th-time{font-size:18px;font-weight:900;color:var(--gold2)}
-.time-head .th-cnt{font-size:12px;color:var(--text2)}
+    /* Otel kartı */
+    .hotel-card{background:var(--bg3);border:1px solid var(--b2);border-radius:13px;overflow:hidden;margin-bottom:10px}
+    .hotel-hdr{background:rgba(0,0,0,.35);padding:9px 12px;border-bottom:1px solid var(--b2);display:flex;align-items:center;gap:8px}
+    .hotel-icon{font-size:14px;flex-shrink:0}
+    .hotel-name{font-size:12px;font-weight:700;color:var(--gold2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hotel-badges{display:flex;gap:4px;flex-shrink:0}
+    .hb{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:1.5px solid}
+    .hb-i{background:rgba(234,179,8,.25);border-color:rgba(234,179,8,.7);color:#fde68a}
+    .hb-c{background:rgba(34,197,94,.25);border-color:rgba(34,197,94,.7);color:#4ade80}
+    .hb-s{background:rgba(56,189,248,.25);border-color:rgba(56,189,248,.7);color:#7dd3fc}
 
-/* ── REZ KART (kompakt) ── */
-.rez-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:6px;padding:10px 12px;position:relative;border-left:4px solid var(--border)}
-.rez-card.rc-inside{border-left-color:var(--gold2)}
-.rez-card.rc-done{border-left-color:var(--green)}
-.rez-card.rc-cancel{opacity:.45}
-.rez-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rez-hotel{font-size:14px;font-weight:900;flex:1;min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rez-badge{border-radius:999px;padding:3px 10px;font-size:10px;font-weight:900;border:1px solid}
-.rez-badge.bwait{color:#ccc;background:#1e2030;border-color:#333}
-.rez-badge.binside{color:var(--gold2);background:#3a1f00;border-color:#a06010}
-.rez-badge.bdone{color:#b9ffd0;background:#0a3d24;border-color:#1a6040}
-.rez-badge.bcancel{color:#888;background:#1a1a1a;border-color:#333}
-.rez-meta{font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:12px;flex-wrap:wrap}
-.rez-meta b{color:var(--text)}
-.rez-sale{font-size:11px;font-weight:900;color:var(--blue)}
-.rez-bos{font-size:11px;font-weight:900;color:var(--red)}
-.rez-staff{font-size:11px;color:var(--text2);margin-top:4px}
+    .res-row{display:flex;align-items:stretch;border-bottom:1px solid rgba(255,255,255,.04);min-height:42px}
+    .res-row:last-child{border-bottom:0}
+    .res-status{width:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;border-right:1px solid rgba(255,255,255,.06)}
+    .rs-pending{background:rgba(31,41,55,.5);color:var(--text2)}
+    .rs-inside{background:rgba(234,179,8,.2);color:#fde68a}
+    .rs-done{background:rgba(34,197,94,.18);color:#4ade80}
+    .rs-cancelled{background:rgba(239,68,68,.12);color:#f87171}
+    .res-satis{width:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;border-right:1px solid rgba(255,255,255,.06)}
+    .rs-satis-on{background:rgba(56,189,248,.2);color:#7dd3fc}
+    .rs-satis-off{background:transparent;color:transparent}
+    .res-info{flex:1;padding:8px 10px;display:flex;align-items:center;gap:10px}
+    .res-time{font-size:14px;font-weight:900;color:var(--gold2);min-width:40px}
+    .res-detail{flex:1}
+    .res-pax{font-size:12px;color:var(--text);font-weight:600}
+    .res-nat{font-size:10px;color:var(--text2);margin-top:1px}
 
-/* ── RAPOR ── */
-.range-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.rbtn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer}
-.rbtn.gold{background:linear-gradient(135deg,#d6a63f,#a07830);color:#1a0f00;border:none}
-.date-range{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
-.date-range input{flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font-size:13px}
-.date-range input::-webkit-calendar-picker-indicator{filter:invert(0.7) brightness(1.5);opacity:.8}
-.rapor-otel{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
-.ro-head{background:var(--bg3);padding:12px 14px}
-.ro-name{font-size:14px;font-weight:900;color:var(--gold2)}
-.ro-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px}
-.ro-s{background:var(--bg2);border-radius:8px;text-align:center;padding:10px 4px}
-.ro-s b{display:block;font-size:20px;font-weight:900;color:var(--gold2);line-height:1}
-.ro-s span{font-size:9px;color:var(--text2);text-transform:uppercase;font-weight:700}
-.ro-s.rss b{color:var(--blue)}.ro-s.rsb b{color:var(--red)}.ro-s.rsd b{color:var(--green)}
+    /* Rapor bölümü */
+    .rapor-wrap{padding:12px}
+    .rapor-filter{background:var(--bg3);border:1px solid var(--b2);border-radius:13px;padding:14px;margin-bottom:12px}
+    .rapor-filter label{font-size:11px;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+    .rapor-filter input,.rapor-filter select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--b2);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:10px}
+    .rapor-filter input:focus,.rapor-filter select:focus{outline:none;border-color:var(--b)}
+    .rbtn-gold{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#000;border:none;border-radius:10px;padding:11px 20px;font-size:13px;font-weight:800;cursor:pointer;width:100%}
+    .rbtn-gold:active{opacity:.85}
 
-/* ── PERSONEL PANELİ ── */
-.staff-section{margin-bottom:10px}
-.staff-sec-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:700}
-.staff-pills{display:flex;flex-wrap:wrap;gap:5px}
-.spill{border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700}
-.spill-free{background:rgba(53,217,121,.12);border:1px solid rgba(53,217,121,.3);color:#6ee7a0}
-.spill-busy{background:rgba(214,166,63,.12);border:1px solid rgba(214,166,63,.3);color:var(--gold2)}
-.spill-off{background:rgba(156,163,175,.1);border:1px solid #374151;color:#9ca3af}
-.cnt-badge{font-size:9px;color:var(--gold2);margin-left:2px;font-weight:900}
+    .rapor-otel-card{background:var(--bg3);border:1px solid var(--b2);border-radius:13px;overflow:hidden;margin-bottom:10px}
+    .rapor-otel-hdr{background:rgba(216,170,75,.08);border-bottom:1px solid var(--b2);padding:10px 14px;display:flex;align-items:center;gap:8px}
+    .rapor-otel-name{font-size:13px;font-weight:800;color:var(--gold2);flex:1}
+    .rapor-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:12px}
+    .rstat{background:rgba(0,0,0,.25);border:1px solid var(--b2);border-radius:9px;padding:8px;text-align:center}
+    .rstat-val{font-size:18px;font-weight:900;color:var(--gold2);line-height:1.1}
+    .rstat-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+    .rstat-satis .rstat-val{color:#7dd3fc}
+    .rstat-bos .rstat-val{color:#f87171}
 
-/* ── LOADING ── */
-.loading{text-align:center;padding:40px;color:var(--text2);font-size:14px}
-</style>
-
-  <!-- PWA -->
-  <link rel="manifest" href="/patron/manifest.json">
-  <meta name="theme-color" content="#d6a63f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Piano Patron">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <script>
-    if("serviceWorker" in navigator){
-      navigator.serviceWorker.register("/patron/sw.js",{scope:"/patron/"})
-        .then(r=>console.log("PWA OK"))
-        .catch(e=>console.log("PWA ERR",e));
-    }
-  </script>
+    .loading{display:flex;align-items:center;justify-content:center;padding:50px 20px;flex-direction:column;gap:12px;color:var(--text2)}
+    .spinner{width:26px;height:26px;border:2px solid var(--b2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+    .footer{text-align:center;font-size:10px;color:var(--text2);padding:6px;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--b2)}
+  </style>
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- BANNER -->
+<div class="banner">
+  <div class="banner-logo">
+    <div class="banner-p">P</div>
+    <div class="banner-title">
+      <div class="banner-name">PIANO DERİ</div>
+      <div class="banner-sub">PATRON PANELİ</div>
+    </div>
+  </div>
+  <div class="banner-line"></div>
+  <div class="banner-tagline">Günlük Operasyon Takip Sistemi</div>
+</div>
+
+<!-- HEADER / NAV -->
 <div class="hdr">
-  <div class="hdr-top">
-    <span class="hdr-brand">✦ PATRON PANELİ</span>
-    <button class="btn-refresh" onclick="loadAll()" title="Yenile">↺</button>
-    <button class="btn-refresh" onclick="logout()" title="Çıkış" style="font-size:13px">⏏</button>
-  </div>
-  <div class="hdr-date-row">
-    <span class="date-lbl">Tarih</span>
-    <input type="date" class="date-input" id="pDate">
-    <span class="date-display" id="pDateTxt"></span>
-    <button class="btn-show" onclick="loadAll()">Göster</button>
-  </div>
-</div>
-
-<!-- SAYFALAR -->
-
-<!-- 1: GÜNLÜK -->
-<div class="page active" id="pgDaily">
-  <div class="sum-grid" id="sumGrid"></div>
-  <div class="chips" id="chipBar"></div>
-  <div id="resList"></div>
-</div>
-
-<!-- 2: PERSONEL -->
-<div class="page" id="pgStaff">
-  <div id="staffPanel"></div>
-</div>
-
-<!-- 3: RAPOR -->
-<div class="page" id="pgReport">
-  <div class="range-bar">
-    <button class="rbtn" onclick="setRange('today')">Bugün</button>
-    <button class="rbtn" onclick="setRange('week')">Bu Hafta</button>
-    <button class="rbtn" onclick="setRange('month')">Bu Ay</button>
-  </div>
-  <div class="date-range">
-    <input type="date" id="rStart">
-    <span style="color:var(--text2)">—</span>
-    <input type="date" id="rEnd">
-    <button class="rbtn gold" onclick="loadReport()">Göster</button>
-  </div>
-  <div id="reportOut"></div>
-</div>
-
-<!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <button class="bnav-btn active" id="nb1" onclick="goPage('pgDaily','nb1')">
-    <span class="ico">📋</span>Günlük
-  </button>
-  <button class="bnav-btn" id="nb2" onclick="goPage('pgStaff','nb2')">
-    <span class="ico">👥</span>Personel
-  </button>
-  <button class="bnav-btn" id="nb3" onclick="goPage('pgReport','nb3')">
-    <span class="ico">📊</span>Rapor
-  </button>
-</div>
-
-<script src="../config/config.js?v=20260516-patron-mobile"></script>
-<script src="../config/firebase.js?v=20260516-patron-mobile"></script>
-<script src="../assets/common.js?v=20260516-patron-mobile"></script>
-<script src="../assets/firebase-api.js?v=20260516-patron-mobile"></script>
-<script>
-// Auth
-(function(){const u=JSON.parse(sessionStorage.getItem('pianoUser')||'null');if(!u||!['patron','admin','boss'].includes(u.role)){sessionStorage.removeItem('pianoUser');window.location.replace('../giris/index.html');}window._pianoUser=u;})();
-function logout(){sessionStorage.removeItem('pianoUser');window.location.href='../giris/index.html';}
-
-let allRes=[], allStaff=[], selHotel='', selFilter='';
-
-const pax    = r=>(Number(r.adult)||0)+(Number(r.child)||0);
-const isSale = r=>String(r.satis||'').toUpperCase()==='TRUE';
-const isDone = r=>String(r.cikti||'').toUpperCase()==='TRUE';
-const isIn   = r=>String(r.girdi||'').toUpperCase()==='TRUE'&&!isDone(r);
-const isWait = r=>!isIn(r)&&!isDone(r)&&r.status!=='CANCELLED';
-const isBos  = r=>isDone(r)&&!isSale(r);
-
-function esc(v){return String(v||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-
-function counts(list){
-  return{
-    total:list.length,
-    pax:list.reduce((s,r)=>s+pax(r),0),
-    wait:list.filter(isWait).length,
-    inside:list.filter(isIn).length,
-    done:list.filter(isDone).length,
-    satis:list.filter(isSale).length,
-    bos:list.filter(isBos).length
-  };
-}
-
-// ── Navigation ──
-function goPage(pageId, btnId){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
-  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(btnId).classList.add('active');
-  if(pageId==='pgStaff') renderStaff();
-}
-
-// ── Visible list ──
-function visible(){
-  let list = selHotel ? allRes.filter(r=>r.hotel===selHotel) : allRes;
-  if(selFilter==='wait')   list=list.filter(isWait);
-  if(selFilter==='inside') list=list.filter(isIn);
-  if(selFilter==='done')   list=list.filter(isDone);
-  if(selFilter==='satis')  list=list.filter(isSale);
-  if(selFilter==='bos')    list=list.filter(isBos);
-  return list;
-}
-
-// ── Summary ──
-function renderSum(){
-  const base = selHotel ? allRes.filter(r=>r.hotel===selHotel) : allRes;
-  const c = counts(base);
-  const items=[
-    {k:'',    lbl:'Toplam',     cls:'',          val:c.total},
-    {k:'wait',lbl:'Bekleyen',   cls:'',          val:c.wait},
-    {k:'inside',lbl:'İçeride', cls:'sc-inside',  val:c.inside},
-    {k:'done',lbl:'Tamamlandı',cls:'sc-done',    val:c.done},
-    {k:'satis',lbl:'Satış ✦',  cls:'sc-satis',   val:c.satis},
-    {k:'bos', lbl:'Boş ✦',     cls:'sc-bos',     val:c.bos},
-  ];
-  sumGrid.innerHTML=items.map(it=>`
-    <div class="sum-card ${it.cls} ${selFilter===it.k&&it.k?'active-filter':''}" onclick="setFilter('${it.k}')">
-      <div class="sum-val">${it.val}</div>
-      <div class="sum-lbl">${it.lbl}</div>
-    </div>`).join('');
-}
-
-function setFilter(k){ selFilter=selFilter===k&&k?'':k; renderSum(); renderList(); }
-function setHotel(h){ selHotel=h; selFilter=''; renderSum(); renderChips(); renderList(); }
-
-// ── Chips ──
-function renderChips(){
-  const names=[...new Set(allRes.map(r=>r.hotel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr'));
-  chipBar.innerHTML=`<button class="chip ${!selHotel?'active':''}" onclick="setHotel('')">Tüm</button>`
-    +names.map(h=>`<button class="chip ${selHotel===h?'active':''}" onclick="setHotel('${esc(h)}')">${esc(h)}</button>`).join('');
-}
-
-// ── Rez List ──
-function renderList(){
-  const list=visible();
-  if(!list.length){
-    resList.innerHTML='<div class="loading">Kayıt yok.</div>';return;
-  }
-  const grp={};
-  list.forEach(r=>{(grp[r.time]??=[]).push(r);});
-  resList.innerHTML=Object.keys(grp).sort().map(t=>`
-    <div class="time-head">
-      <span class="th-time">⏰ ${t}</span>
-      <span class="th-cnt">${grp[t].length} rezervasyon</span>
+  <div class="hdr-row">
+    <div class="darr" onclick="changeDay(-1)">‹</div>
+    <div class="dlbl" onclick="openPicker()">
+      <div class="date" id="dlbl"></div>
+      <div class="day" id="dwlbl"></div>
     </div>
-    ${grp[t].map(r=>{
-      const cls=r.status==='CANCELLED'?'rc-cancel':isDone(r)?'rc-done':isIn(r)?'rc-inside':'';
-      const badgeCls=r.status==='CANCELLED'?'bcancel':isDone(r)?'bdone':isIn(r)?'binside':'bwait';
-      const badgeTxt=r.status==='CANCELLED'?'İPTAL':isDone(r)?'ÇIKTI':isIn(r)?'İÇERİDE':'BEKLİYOR';
-      const staffTxt=[r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).join(' · ');
-      return `<div class="rez-card ${cls}">
-        <div class="rez-row">
-          <span class="rez-hotel">${esc(r.hotel)}</span>
-          <span class="rez-badge ${badgeCls}">${badgeTxt}</span>
-          ${isSale(r)?'<span class="rez-sale">SATIŞ</span>':isDone(r)?'<span class="rez-bos">BOŞ</span>':''}
+    <div class="darr" onclick="changeDay(1)">›</div>
+    <div class="tbtn" onclick="goToday()">Bugün</div>
+    <div class="rbtn" id="rbtn" onclick="refresh()">↺</div>
+  </div>
+  <input type="date" id="hd" onchange="onPick()">
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tbb active" id="tbb-list" onclick="showTab('list')">📋 Günlük Liste</button>
+  <button class="tbb" id="tbb-rapor" onclick="showTab('rapor')">📊 Rapor</button>
+</div>
+
+<!-- ÖZET (6 kart) -->
+<div class="sum" id="sumBar">
+  <div class="sc"><div class="sv c0" id="sv-total">—</div><div class="sl">Toplam</div></div>
+  <div class="sc"><div class="sv c1" id="sv-pending">—</div><div class="sl">Bekleyen</div></div>
+  <div class="sc"><div class="sv c2" id="sv-inside">—</div><div class="sl">İçeride</div></div>
+  <div class="sc"><div class="sv c3" id="sv-done">—</div><div class="sl">Tamamlandı</div></div>
+  <div class="sc"><div class="sv c5" id="sv-satis">—</div><div class="sl">Satış</div></div>
+  <div class="sc"><div class="sv c4" id="sv-bos">—</div><div class="sl">Boş</div></div>
+</div>
+
+<!-- TAB: Günlük Liste -->
+<div id="tab-list">
+  <div class="content" id="content">
+    <div class="loading"><div class="spinner"></div>Yükleniyor...</div>
+  </div>
+</div>
+
+<!-- TAB: Rapor -->
+<div id="tab-rapor" style="display:none">
+  <div class="rapor-wrap">
+    <div class="rapor-filter">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label>Başlangıç Tarihi</label>
+          <input type="date" id="rStart">
         </div>
-        <div class="rez-meta">
-          <span>👤 <b>${pax(r)}</b> kişi</span>
-          <span>🌍 <b>${esc(r.nation)}</b></span>
-          ${r.kart?`<span>💳 <b>${esc(r.kart)}</b></span>`:''}
-          ${r.ayak?`<span>🚗 <b>${esc(r.ayak)}</b></span>`:''}
+        <div>
+          <label>Bitiş Tarihi</label>
+          <input type="date" id="rEnd">
         </div>
-        ${staffTxt?`<div class="rez-staff">🧑 ${esc(staffTxt)}</div>`:''}
-        ${r.notes?`<div class="rez-staff" style="color:#7c80a0">📝 ${esc(r.notes)}</div>`:''}
-      </div>`;
-    }).join('')}`).join('');
-}
-
-// ── Personel ──
-function renderStaff(){
-  const busy=new Set();
-  allRes.forEach(r=>{
-    if(r.status==='CANCELLED') return;
-    if(isDone(r)) return;
-    [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n=>busy.add(n));
-  });
-  const progCount={};
-  allRes.forEach(r=>{
-    if(r.status==='CANCELLED') return;
-    [r.staff1,r.staff2,r.staff3,r.staff4].filter(Boolean).forEach(n=>{progCount[n]=(progCount[n]||0)+1;});
-  });
-  const offNames=new Set();
-  allStaff.forEach(s=>{
-    if(String(s.offDates||'').split(',').map(x=>x.trim()).includes(pDate.value)) offNames.add(s.name);
-  });
-  const active=allStaff.filter(s=>s.status==='ACTIVE');
-  const freeList=active.filter(s=>!busy.has(s.name)&&!offNames.has(s.name));
-  const busyList=active.filter(s=>busy.has(s.name));
-  const offList=allStaff.filter(s=>offNames.has(s.name));
-
-  function pills(arr, cls){
-    if(!arr.length) return '<span style="color:var(--text2);font-size:12px">—</span>';
-    return arr.map(s=>{
-      const cnt=progCount[s.name]||0;
-      return `<span class="spill ${cls}">${s.name.split(' ')[0]}${cnt?`<span class="cnt-badge">(${cnt})</span>`:''}  </span>`;
-    }).join('');
-  }
-
-  staffPanel.innerHTML=`
-    <div class="staff-section">
-      <div class="staff-sec-lbl">🟢 Boşta (${freeList.length})</div>
-      <div class="staff-pills">${pills(freeList,'spill-free')}</div>
+      </div>
+      <label>Otel (Opsiyonel)</label>
+      <select id="rHotel">
+        <option value="">— Tüm Oteller —</option>
+      </select>
+      <button class="rbtn-gold" onclick="loadRapor()">🔍 Göster</button>
     </div>
-    <div class="staff-section">
-      <div class="staff-sec-lbl">🟡 Programda (${busyList.length})</div>
-      <div class="staff-pills">${pills(busyList,'spill-busy')}</div>
-    </div>
-    <div class="staff-section">
-      <div class="staff-sec-lbl">⚫ İzinli (${offList.length})</div>
-      <div class="staff-pills">${pills(offList,'spill-off')}</div>
-    </div>`;
-}
-
-// ── Rapor ──
-function setRange(r){
-  const t=todayStr();
-  if(r==='today'){rStart.value=t;rEnd.value=t;}
-  else if(r==='week'){rStart.value=weekStart(t);rEnd.value=t;}
-  else if(r==='month'){rStart.value=monthStart(t);rEnd.value=t;}
-  loadReport();
-}
-
-async function loadReport(){
-  reportOut.innerHTML='<div class="loading">Yükleniyor...</div>';
-  const s=rStart.value,e=rEnd.value;
-  const all=(await getReservations()).filter(r=>r.status!=='CANCELLED'&&(!s||r.date>=s)&&(!e||r.date<=e));
-  const grp={};
-  all.forEach(r=>(grp[r.hotel||'İsimsiz']??=[]).push(r));
-  const totalAll=counts(all);
-  reportOut.innerHTML=`
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px">
-      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">GENEL TOPLAM</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
-        <div><div style="font-size:22px;font-weight:900;color:var(--gold2)">${totalAll.total}</div><div style="font-size:9px;color:var(--text2)">REZ</div></div>
-        <div><div style="font-size:22px;font-weight:900;color:var(--blue)">${totalAll.satis}</div><div style="font-size:9px;color:var(--text2)">SATIŞ</div></div>
-        <div><div style="font-size:22px;font-weight:900;color:var(--red)">${totalAll.bos}</div><div style="font-size:9px;color:var(--text2)">BOŞ</div></div>
+    <div id="raporContent">
+      <div class="loading" style="padding:30px">
+        <div style="font-size:28px;margin-bottom:8px">📊</div>
+        <div>Tarih seçip "Göster" e basın</div>
       </div>
     </div>
-    ${Object.keys(grp).sort((a,b)=>a.localeCompare(b,'tr')).map(hotel=>{
-      const c=counts(grp[hotel]);
-      return `<div class="rapor-otel">
-        <div class="ro-head"><div class="ro-name">▣ ${esc(hotel)}</div></div>
-        <div class="ro-stats">
-          <div class="ro-s"><b>${c.total}</b><span>Rez</span></div>
-          <div class="ro-s rsd"><b>${c.done}</b><span>Bitti</span></div>
-          <div class="ro-s rss"><b>${c.satis}</b><span>Satış</span></div>
-          <div class="ro-s rsb"><b>${c.bos}</b><span>Boş</span></div>
+  </div>
+</div>
+
+<div class="footer" id="footer"></div>
+
+<script src="../config/config.js?v=20260515-patron-v2"></script>
+<script src="../config/firebase.js?v=20260515-patron-v2"></script>
+<script src="../assets/common.js?v=20260515-patron-v2"></script>
+<script src="../assets/firebase-api.js?v=20260515-patron-v2"></script>
+<script>
+const DAYS=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+let curDate=todayStr(), all=[], activeTab='list';
+
+// ── Tab Yönetimi ──────────────────────────────────────────────
+function showTab(t) {
+  activeTab = t;
+  ['list','rapor'].forEach(id => {
+    document.getElementById('tab-'+id).style.display = id===t?'block':'none';
+    document.getElementById('tbb-'+id).classList.toggle('active', id===t);
+  });
+  document.getElementById('sumBar').style.display = t==='list' ? 'grid' : 'none';
+  if (t==='rapor') initRaporHotels();
+}
+
+// ── Tarih Nav ─────────────────────────────────────────────────
+function fmt(iso){if(!iso)return'';const p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function updateHdr(){const d=new Date(curDate+'T00:00:00');dlbl.innerText=fmt(curDate);dwlbl.innerText=DAYS[d.getDay()];hd.value=curDate;}
+function changeDay(n){curDate=addDays(curDate,n);updateHdr();load();}
+function goToday(){curDate=todayStr();updateHdr();load();}
+function openPicker(){hd.click();}
+function onPick(){if(hd.value){curDate=hd.value;updateHdr();load();}}
+
+// ── Status ────────────────────────────────────────────────────
+function status(r){
+  if(r.status==='CANCELLED') return 'cancelled';
+  if(String(r.cikti).toUpperCase()==='TRUE') return 'done';
+  if(String(r.girdi).toUpperCase()==='TRUE') return 'inside';
+  return 'pending';
+}
+
+// ── Özet ─────────────────────────────────────────────────────
+function updateStats(){
+  const active = all.filter(r=>r.status!=='CANCELLED');
+  const done   = all.filter(r=>status(r)==='done');
+  const satis  = done.filter(r=>String(r.satis).toUpperCase()==='TRUE');
+  const bos    = done.filter(r=>String(r.satis).toUpperCase()!=='TRUE');
+  sv_total.innerText   = all.length;
+  sv_pending.innerText = all.filter(r=>status(r)==='pending').length;
+  sv_inside.innerText  = all.filter(r=>status(r)==='inside').length;
+  sv_done.innerText    = done.length;
+  sv_satis.innerText   = satis.length;
+  sv_bos.innerText     = bos.length;
+}
+
+// ── Render (Günlük Liste) ─────────────────────────────────────
+function render(){
+  const el=document.getElementById('content');
+  if(!all.length){
+    el.innerHTML='<div class="loading" style="padding:40px"><div style="font-size:32px;margin-bottom:10px">📭</div>Bu tarihte rezervasyon yok.</div>';
+    return;
+  }
+  const byHotel={};
+  all.forEach(r=>{if(!byHotel[r.hotel])byHotel[r.hotel]=[];byHotel[r.hotel].push(r);});
+  const hotelList=Object.keys(byHotel).sort((a,b)=>a.localeCompare(b,'tr'));
+
+  el.innerHTML=hotelList.map(hotel=>{
+    const resv=byHotel[hotel].sort((a,b)=>String(a.time).localeCompare(String(b.time)));
+    const hasInside=resv.some(r=>status(r)==='inside');
+    const hasDone=resv.some(r=>status(r)==='done');
+    const hasSatis=resv.some(r=>String(r.satis).toUpperCase()==='TRUE'&&status(r)==='done');
+    const badges=`
+      ${hasInside?'<div class="hb hb-i" title="İçeride">İ</div>':''}
+      ${hasDone?'<div class="hb hb-c" title="Çıktı">Ç</div>':''}
+      ${hasSatis?'<div class="hb hb-s" title="Satış">S</div>':''}`;
+    const rows=resv.map(r=>{
+      const st=status(r);
+      const pax=(Number(r.adult)||0)+(Number(r.child)||0);
+      const isSatis=String(r.satis).toUpperCase()==='TRUE'&&st==='done';
+      const stLabel={pending:'',inside:'İ',done:'Ç',cancelled:'✕'}[st]||'';
+      const stClass={pending:'rs-pending',inside:'rs-inside',done:'rs-done',cancelled:'rs-cancelled'}[st];
+      return `<div class="res-row">
+        <div class="res-status ${stClass}">${stLabel}</div>
+        <div class="res-satis ${isSatis?'rs-satis-on':'rs-satis-off'}">S</div>
+        <div class="res-info">
+          <div class="res-time">${r.time}</div>
+          <div class="res-detail">
+            <div class="res-pax">${pax} kişi</div>
+            <div class="res-nat">${r.nation||'—'}</div>
+          </div>
         </div>
       </div>`;
-    }).join('')||'<div class="loading">Kayıt yok.</div>'}`;
+    }).join('');
+    return `<div class="hotel-card">
+      <div class="hotel-hdr">
+        <span class="hotel-icon">🏨</span>
+        <span class="hotel-name">${hotel}</span>
+        <div class="hotel-badges">${badges}</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
 }
 
-// ── Load ──
-async function loadAll(){
-  pDateTxt.innerText=fmtDate(pDate.value);
-  resList.innerHTML='<div class="loading">Yükleniyor...</div>';
-  [allRes, allStaff]=await Promise.all([
-    getReservations(pDate.value),
-    getStaffWithOffDates().catch(()=>[])
-  ]);
-  if(!Array.isArray(allRes)) allRes=[];
-  if(!Array.isArray(allStaff)) allStaff=[];
-  selHotel=''; selFilter='';
-  renderSum(); renderChips(); renderList();
-  // personel sayfası açıksa yenile
-  if(document.getElementById('pgStaff').classList.contains('active')) renderStaff();
+// ── Rapor ─────────────────────────────────────────────────────
+async function initRaporHotels() {
+  const hotels = await getHotels();
+  const sel = document.getElementById('rHotel');
+  sel.innerHTML = '<option value="">— Tüm Oteller —</option>' +
+    hotels.filter(h=>h.status==='ACTIVE').sort((a,b)=>String(a.hotel||'').localeCompare(String(b.hotel||''),'tr'))
+      .map(h=>`<option value="${h.hotel}">${h.hotel}</option>`).join('');
+  // Varsayılan tarih aralığı: bu ay
+  if (!document.getElementById('rStart').value) {
+    const t = todayStr();
+    document.getElementById('rStart').value = t.slice(0,8)+'01';
+    document.getElementById('rEnd').value   = t;
+  }
 }
 
-// Bootstrap
-pDate.value=todayStr();
-rStart.value=todayStr(); rEnd.value=todayStr();
-loadAll();
-setInterval(loadAll,20000);
+async function loadRapor() {
+  const s = document.getElementById('rStart').value;
+  const e = document.getElementById('rEnd').value;
+  const h = document.getElementById('rHotel').value;
+  if (!s||!e) { alert('Tarih aralığı seçin'); return; }
+  const rc = document.getElementById('raporContent');
+  rc.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+
+  // Tüm rezervasyonları çek (tarih aralığı için tüm veriyi getirmeliyiz)
+  const data = await fbGet('rezervasyonlar');
+  let list = data ? Object.values(data) : [];
+
+  // Tarih filtresi
+  list = list.filter(r => r.date && r.date >= s && r.date <= e);
+  // İptal olmayanlar
+  list = list.filter(r => r.status !== 'CANCELLED');
+  // Otel filtresi
+  if (h) list = list.filter(r => r.hotel === h);
+
+  if (!list.length) {
+    rc.innerHTML = '<div class="loading" style="padding:30px"><div style="font-size:28px">📭</div>Bu aralıkta rezervasyon yok.</div>';
+    return;
+  }
+
+  // Otele göre grupla
+  const byHotel = {};
+  list.forEach(r => {
+    if (!byHotel[r.hotel]) byHotel[r.hotel] = [];
+    byHotel[r.hotel].push(r);
+  });
+  const hotelKeys = Object.keys(byHotel).sort((a,b)=>a.localeCompare(b,'tr'));
+
+  rc.innerHTML = hotelKeys.map(hn => {
+    const rsvs = byHotel[hn];
+    const tRez  = rsvs.length;
+    const tPax  = rsvs.reduce((s,r)=>(Number(r.adult)||0)+(Number(r.child)||0)+s,0);
+    const tSatis= rsvs.filter(r=>String(r.satis).toUpperCase()==='TRUE'&&String(r.cikti).toUpperCase()==='TRUE').length;
+    const tBos  = rsvs.filter(r=>!(String(r.satis).toUpperCase()==='TRUE'&&String(r.cikti).toUpperCase()==='TRUE')).length;
+    return `<div class="rapor-otel-card">
+      <div class="rapor-otel-hdr">
+        <span style="font-size:16px">🏨</span>
+        <div class="rapor-otel-name">${hn}</div>
+      </div>
+      <div class="rapor-stats">
+        <div class="rstat"><div class="rstat-val">${tRez}</div><div class="rstat-lbl">T.Rez</div></div>
+        <div class="rstat"><div class="rstat-val">${tPax}</div><div class="rstat-lbl">T.Pax</div></div>
+        <div class="rstat rstat-satis"><div class="rstat-val">${tSatis}</div><div class="rstat-lbl">T.Satış</div></div>
+        <div class="rstat rstat-bos"><div class="rstat-val">${tBos}</div><div class="rstat-lbl">T.Boş</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Load ──────────────────────────────────────────────────────
+async function load(){
+  if (activeTab === 'list') {
+    document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  }
+  try{
+    const data=await apiGet('getReservations',{date:curDate});
+    all=Array.isArray(data)?data:[];
+    updateStats();
+    if (activeTab === 'list') render();
+    footer.innerText='Son güncelleme: '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }catch(e){
+    document.getElementById('content').innerHTML='<div class="loading"><div style="font-size:28px">⚠️</div>Bağlantı hatası.</div>';
+  }
+}
+
+async function refresh(){rbtn.classList.add('spin');await load();rbtn.classList.remove('spin');}
+updateHdr();
+load();
+setInterval(load,15000);
 </script>
 </body>
 </html>
