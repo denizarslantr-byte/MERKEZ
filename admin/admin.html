@@ -702,7 +702,7 @@ async function importRezervasyonlar(event) {
   if (!dataRows.length) { progress.textContent = "Veri satırı bulunamadı!"; return; }
 
   const user = JSON.parse(sessionStorage.getItem("pianoUser") || "{}");
-  let added = 0, skipped = 0, autoCikti = 0, autoGirdi = 0;
+  let added = 0, skipped = 0, autoCikti = 0, autoGirdi = 0, autoSatis = 0;
 
   for (let i = 0; i < dataRows.length; i++) {
     const row = dataRows[i];
@@ -729,6 +729,7 @@ async function importRezervasyonlar(event) {
     const cikti = !!(ciktiSaati);          // ÇIKIŞ saati varsa çıktı işaretli
     if (girdi) autoGirdi++;
     if (cikti) autoCikti++;
+    if (satis) autoSatis++;
 
     // Grup başkanı → notes alanına
     const grupbsk = col(row, "GRUPBASKANADI") || "";
@@ -739,9 +740,13 @@ async function importRezervasyonlar(event) {
     const staff3 = col(row, "SERVISCIADI3") || "";
     const staff4 = col(row, "SERVISCIADI4") || "";
 
+    // SATIŞ sütunu
+    const satisRaw = col(row, "SATIS");
+    const satis = satisRaw.toUpperCase() === "EVET" || satisRaw.toUpperCase() === "TRUE" || satisRaw === "1";
+
     const rez = {
       date,
-      time:       girdiSaati || "00:00",   // GIRIS saati = saat de
+      time:       girdiSaati || "00:00",
       hotel,
       adult:      Number(col(row, "PAX"))      || 0,
       child:      Number(col(row, "PAXCOCUK")) || 0,
@@ -756,7 +761,7 @@ async function importRezervasyonlar(event) {
       cikti,
       girdiSaati,
       ciktiSaati,
-      satis:      false,
+      satis,
       status:     cikti ? "COMPLETED" : girdi ? "INSIDE" : "PENDING",
       _importedAt: new Date().toISOString(),
       _importedBy: user.username || "admin",
@@ -780,7 +785,8 @@ async function importRezervasyonlar(event) {
         ✅ Eklenen: <b style="color:#35d979">${added}</b><br>
         ⏭ Atlanan (boş satır): <b style="color:var(--warn)">${skipped}</b><br>
         🔑 GİRDİ otomatik işaretlendi: <b style="color:var(--gold)">${autoGirdi} kayıt</b><br>
-        🔑 ÇIKTI otomatik işaretlendi: <b style="color:var(--blue)">${autoCikti} kayıt</b>
+        🔑 ÇIKTI otomatik işaretlendi: <b style="color:var(--blue)">${autoCikti} kayıt</b><br>
+        💰 SATIŞ otomatik işaretlendi: <b style="color:var(--green)">${autoSatis} kayıt</b>
       </div>
     </div>`;
 
