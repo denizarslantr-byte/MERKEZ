@@ -148,7 +148,7 @@ async function load(){
 }
 async function refresh(){rbtn.classList.add("spin");await load();rbtn.classList.remove("spin");}
 updHdr();load();
-setInterval(load,10000);
+setInterval(()=>load(false),20000);
 </script>
 </body>
 </html>
