@@ -149,12 +149,12 @@ function updateStats(){
   const done  = all.filter(r=>status(r)==='done');
   const satis = done.filter(r=>String(r.satis).toUpperCase()==='TRUE');
   const bos   = done.filter(r=>String(r.satis).toUpperCase()!=='TRUE');
-  sv_total.innerText   = all.length;
-  sv_pending.innerText = all.filter(r=>status(r)==='pending').length;
-  sv_inside.innerText  = all.filter(r=>status(r)==='inside').length;
-  sv_done.innerText    = done.length;
-  sv_satis.innerText   = satis.length;
-  sv_bos.innerText     = bos.length;
+  document.getElementById('sv-total').innerText = all.length;
+  document.getElementById('sv-pending').innerText = all.filter(r=>status(r)==='pending').length;
+  document.getElementById('sv-inside').innerText = all.filter(r=>status(r)==='inside').length;
+  document.getElementById('sv-done').innerText = done.length;
+  document.getElementById('sv-satis').innerText = satis.length;
+  document.getElementById('sv-bos').innerText = bos.length;
 }
 
 // ── Render ────────────────────────────────────────────────
