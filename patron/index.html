@@ -356,7 +356,7 @@ async function load(showSpinner){
     document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
   }
   try{
-    const data=await apiGet('getReservations',{date:curDate});
+    const data=await getReservations(curDate);
     all=Array.isArray(data)?data:[];
     updateStats();
     if (activeTab === 'list') render();
@@ -369,7 +369,8 @@ async function load(showSpinner){
 
 async function refresh(){rbtn.classList.add('spin');await load(true);rbtn.classList.remove('spin');}
 updateHdr();
-load(true);
+// Firebase hazır olana kadar kısa bekle
+setTimeout(()=>load(true), 300);
 setInterval(()=>load(false),20000);
 </script>
 </body>
