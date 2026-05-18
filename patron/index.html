@@ -183,10 +183,10 @@
 
 <div class="footer" id="footer"></div>
 
-<script src="../config/config.js?v=20260515-patron-v2"></script>
-<script src="../config/firebase.js?v=20260515-patron-v2"></script>
-<script src="../assets/common.js?v=20260515-patron-v2"></script>
-<script src="../assets/firebase-api.js?v=20260515-patron-v2"></script>
+<script src="../config/config.js?v=20260518-fix3"></script>
+<script src="../config/firebase.js?v=20260518-fix3"></script>
+<script src="../assets/common.js?v=20260518-fix3"></script>
+<script src="../assets/firebase-api.js?v=20260518-fix3"></script>
 <script>
 const DAYS=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
 let curDate=todayStr(), all=[], activeTab='list';
@@ -367,13 +367,26 @@ async function refresh(){rbtn.classList.add('spin');await load(true);rbtn.classL
 updateHdr();
 // Firebase CDN yüklenene kadar tekrar dene
 async function waitAndLoad() {
-  for (let i = 0; i < 20; i++) {
-    try { await load(i===0); return; }
-    catch(e) { await new Promise(r => setTimeout(r, 600)); }
+  let lastErr = '';
+  for (let i = 0; i < 30; i++) {
+    try {
+      await load(i === 0);
+      return; // başarılı
+    } catch(e) {
+      lastErr = e.message || String(e);
+      // İlk 3 denemede spinner, sonra hata mesajı göster
+      if (i === 5 && activeTab === 'list') {
+        document.getElementById('content').innerHTML =
+          `<div class="loading"><div style="font-size:28px">⏳</div>Firebase bağlanıyor... (${i+1}/30)<br><small style="font-size:10px;opacity:.5">${lastErr}</small></div>`;
+      }
+      await new Promise(r => setTimeout(r, 800));
+    }
   }
+  document.getElementById('content').innerHTML =
+    `<div class="loading"><div style="font-size:28px">⚠️</div>Bağlantı başarısız.<br><small style="font-size:11px;opacity:.7">${lastErr}</small><br><button onclick="waitAndLoad()" style="margin-top:12px;padding:8px 16px;background:var(--gold);color:#000;border:none;border-radius:8px;font-weight:700">Tekrar Dene</button></div>`;
 }
 waitAndLoad();
-setInterval(()=>load(false),20000);
+setInterval(()=>{ try{load(false);}catch(e){} }, 20000);
 </script>
 </body>
 </html>
