@@ -1173,7 +1173,8 @@ document.addEventListener("touchstart", stopNewReservationAlert, true);
 });
 
 // ── Bootstrap ──────────────────────────────────────────────────
-loadAll();
+// Firebase initialize olana kadar kısa bekle
+setTimeout(() => loadAll(), 400);
 
 // Otomatik yenileme: kullanıcı input'a dokunuyorsa DURDUR
 let userActive = false;
@@ -1198,10 +1199,10 @@ document.addEventListener('click',  e => {
   }
 });
 
-// Normal otomatik yenileme: kullanıcı aktif değilse 30 saniyede bir (sessiz)
+// Normal otomatik yenileme: kullanıcı aktif değilse 5 saniyede bir (sessiz)
 setInterval(() => {
   if (!userActive) loadAll();
-}, 30000);
+}, 5000);
 
 // ── Plakasız Dışa Aktar ────────────────────────────────────────
 function exportPlakasiz() {
