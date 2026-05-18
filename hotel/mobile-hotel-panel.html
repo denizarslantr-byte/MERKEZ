@@ -175,7 +175,7 @@ async function saveReservation() {
   }
 }
 
-async function loadReservations() {
+async function loadReservations(showSpinner=true) {
   document.getElementById("reservationList").innerHTML =
     '<div style="text-align:center;color:var(--text2);padding:16px">Yükleniyor...</div>';
   const data = await apiGet("getReservations", { date: currentDate, hotel });
@@ -290,8 +290,8 @@ showSec("entry");
 
 // Otel paneli otomatik yenileme: 10 saniye
 setInterval(() => {
-  if (!document.hidden) loadReservations();
-}, 15000);
+  if (!document.hidden) loadReservations(false); // sessiz yenileme
+}, 20000);
 </script>
 
 <script>
