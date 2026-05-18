@@ -4,17 +4,29 @@
 // Firebase SDK'yı CDN'den import et
 let db = null;
 
+let _firebaseInitPromise = null;
 async function initFirebase() {
   if (db) return db;
-  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-  const { getDatabase, ref, get, set, push, update, remove, query, orderByChild, equalTo, onValue } =
-    await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-
-  const app = initializeApp(FIREBASE_CONFIG);
-  db = getDatabase(app);
-
-  window._fb = { ref, get, set, push, update, remove, query, orderByChild, equalTo, onValue };
-  return db;
+  // Sadece bir kez init yap
+  if (_firebaseInitPromise) return _firebaseInitPromise;
+  _firebaseInitPromise = (async () => {
+    try {
+      const [appMod, dbMod] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js")
+      ]);
+      const { initializeApp } = appMod;
+      const { getDatabase, ref, get, set, push, update, remove, query, orderByChild, equalTo, onValue } = dbMod;
+      const app = initializeApp(FIREBASE_CONFIG);
+      db = getDatabase(app);
+      window._fb = { ref, get, set, push, update, remove, query, orderByChild, equalTo, onValue };
+      return db;
+    } catch(e) {
+      _firebaseInitPromise = null; // hata olursa tekrar denenebilsin
+      throw new Error('Firebase yüklenemedi: ' + e.message);
+    }
+  })();
+  return _firebaseInitPromise;
 }
 
 async function fbGet(path) {
