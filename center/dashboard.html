@@ -359,6 +359,10 @@ async function loadAll() {
     getHotels(),
     getPlakalar()
   ]);
+  // Firebase henüz başlamadıysa hepsinin rejected olması demektir → throw et, retry yapsın
+  if (rRes.status === 'rejected' && sRes.status === 'rejected') {
+    throw new Error(rRes.reason?.message || 'Firebase bağlantı bekleniyor');
+  }
   reservations = rRes.status==='fulfilled' && Array.isArray(rRes.value) ? rRes.value : [];
   staff        = sRes.status==='fulfilled' && Array.isArray(sRes.value) ? sRes.value : [];
   hotels       = hRes.status==='fulfilled' && Array.isArray(hRes.value) ? hRes.value : [];
@@ -1173,8 +1177,18 @@ document.addEventListener("touchstart", stopNewReservationAlert, true);
 });
 
 // ── Bootstrap ──────────────────────────────────────────────────
-// Firebase initialize olana kadar kısa bekle
-setTimeout(() => loadAll(), 400);
+// Firebase CDN yüklenene kadar bekle (mobilde 1-3sn sürebilir)
+async function waitForFirebaseAndLoad() {
+  for (let i = 0; i < 20; i++) {
+    try {
+      await loadAll();
+      return; // başarılı
+    } catch(e) {
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+}
+waitForFirebaseAndLoad();
 
 // Otomatik yenileme: kullanıcı input'a dokunuyorsa DURDUR
 let userActive = false;
