@@ -1198,10 +1198,10 @@ document.addEventListener('click',  e => {
   }
 });
 
-// Normal otomatik yenileme: kullanıcı aktif değilse 15 saniyede bir
+// Normal otomatik yenileme: kullanıcı aktif değilse 30 saniyede bir (sessiz)
 setInterval(() => {
   if (!userActive) loadAll();
-}, 10000);
+}, 30000);
 
 // ── Plakasız Dışa Aktar ────────────────────────────────────────
 function exportPlakasiz() {
