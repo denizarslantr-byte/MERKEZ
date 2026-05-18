@@ -213,7 +213,7 @@ async function load(showSpinner){
     document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
   }
   try{
-    const data=await apiGet('getReservations',{date:curDate});
+    const data=await getReservations(curDate);
     all=Array.isArray(data)?data:[];
     updateStats();
     render();
@@ -226,8 +226,8 @@ async function load(showSpinner){
 async function refresh(){rbtn.classList.add('spin');await load(true);rbtn.classList.remove('spin');}
 
 updateHdr();
-load(true);
-setInterval(()=>load(false), 20000);
+setTimeout(()=>load(true), 300);
+setInterval(()=>load(false),20000);
 </script>
 </body>
 </html>
