@@ -641,7 +641,7 @@ function renderReservations() {
               <td class="action-cell">
                 <button class="btn-dark btn-sm" onclick="saveOps('${r.id}')" ${dis}>💾</button>
                 <button class="btn-blue btn-sm" onclick='editCenter(${JSON.stringify(r).replace(/'/g,"&#39;")})' ${dis}>✏️</button>
-                <button class="btn-red  btn-sm" onclick="cancelRes('${r.id}')" ${dis}>❌</button>
+                <button class="btn-red  btn-sm" onclick="deleteRes('${r.id}')" ${dis}>🗑</button>
               </td>
             </tr>`;
           }).join("")}
@@ -753,11 +753,20 @@ async function saveCenterReservation() {
   }
 }
 
-async function cancelRes(id) {
-  if (!confirm("Bu rezervasyon iptal edilsin mi?")) return;
-  await updateReservation(id, { status: "CANCELLED", updatedAt: new Date().toISOString() });
-  showToast("Rezervasyon iptal edildi");
-  await loadAll();
+async function deleteRes(id) {
+  if (!confirm("Bu rezervasyon kalıcı olarak silinsin mi?")) return;
+  try {
+    await deleteReservation(id);
+    // Satırı tablodan direkt kaldır (loadAll beklemeden)
+    const row = document.querySelector(`tr[data-id="${id}"]`);
+    if (row) row.remove();
+    // Reservations dizisinden de çıkar
+    reservations = reservations.filter(r => String(r.id) !== String(id));
+    renderSummary();
+    showToast("✅ Rezervasyon silindi");
+  } catch(e) {
+    showToast("❌ Silinemedi: " + e.message, "err");
+  }
 }
 
 // ── Personel İşlemleri ─────────────────────────────────────────
