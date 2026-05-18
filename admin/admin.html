@@ -74,7 +74,7 @@
       <button id="tab5" class="tab-btn"        onclick="openTab(5);loadPlakaRapor()">🚗 Araç Raporu</button>
       <button id="tab6" class="tab-btn"        onclick="openTab(6)" style="background:linear-gradient(135deg,rgba(160,120,48,.4),rgba(241,212,138,.15));border-color:var(--gold)">📥 Admin Raporları</button>
       <button id="tab7" class="tab-btn"        onclick="openTab(7);loadUsers()">👤 Kullanıcılar</button>
-      <button id="tab8" class="tab-btn"        onclick="openTab(8)" style="background:rgba(83,149,255,.12);border-color:rgba(83,149,255,.3);color:#93c5fd">📥 İçe Aktar</button>
+      <button id="tab8" class="tab-btn"        onclick="openTab(8)">📥 İçe Aktar</button>
     </div>
 
     <!-- TAB 1: Oteller -->
@@ -222,6 +222,7 @@
           <input type="date" id="r6Start" style="width:135px">
           <span style="color:var(--text2)">—</span>
           <input type="date" id="r6End" style="width:135px">
+          <button class="btn-gold btn-sm" onclick="r6ApplyDate()" style="padding:7px 16px">▶ Göster</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
           <div class="r6-row"><span class="r6-num">1</span><span class="r6-ico">📋</span><span class="r6-title">Tüm Rezervasyonlar</span><button class="btn-dark btn-sm r6-show" onclick="adminRaporGoster(1)">▶ Göster</button><button class="btn-gold btn-sm" onclick="adminRaporExport(1)">⬇ Aktar</button></div>
@@ -273,100 +274,23 @@
       </div>
     </div>
 
-    <!-- TAB 8: İçe Aktar -->
+    <!-- TAB 8: İÇE AKTAR -->
     <div id="tabContent8" style="display:none">
-
-      <!-- Şablon Bilgi -->
-      <div class="panel-card" style="background:rgba(29,78,216,.08);border:1px solid rgba(96,165,250,.3)">
-        <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-          <div style="flex:1">
-            <h3 style="color:#93c5fd;margin-top:0;font-size:14px;margin-bottom:8px">📋 Excel Şablon Formatı</h3>
-            <div style="font-size:12px;color:var(--text2);line-height:1.8">
-              Sütun adları büyük/küçük harf ve boşluk farkı olmadan otomatik eşleştirilir.<br>
-              <b style="color:var(--text)">Zorunlu sütunlar:</b> TARIH · ACENTAADI · GIRIS<br>
-              <b style="color:var(--text)">Tarih formatı:</b>
-              <code style="background:rgba(0,0,0,.3);padding:1px 6px;border-radius:4px;font-size:11px">17.05.2026</code> (GG.AA.YYYY)<br>
-              <b style="color:var(--text)">Sütunlar:</b> TARIH · ACENTAADI · GRUPBASKANADI · KARTNO · UYRUK · SERVİSCİADİ · SERVİSCİADİ2 · SERVİSCİADİ3 · SERVİSCİADİ4 · PAX · PAXCOCUK · GIRIS · CIKIS · AYAK
-            </div>
-          </div>
-          <div style="flex-shrink:0;display:flex;flex-direction:column;gap:8px">
-            <button class="btn-dark btn-sm" onclick="importSablonIndir()" style="border-color:rgba(96,165,250,.4);color:#93c5fd">⬇ Örnek Şablon İndir</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Drop Zone -->
       <div class="panel-card">
-        <div id="importDropZone" style="border:2px dashed rgba(96,165,250,.3);border-radius:12px;padding:44px 20px;text-align:center;cursor:pointer;position:relative;transition:all .2s;background:rgba(29,78,216,.04)"
-          ondragover="event.preventDefault();this.style.borderColor='rgba(96,165,250,.7)';this.style.background='rgba(29,78,216,.1)'"
-          ondragleave="this.style.borderColor='rgba(96,165,250,.3)';this.style.background='rgba(29,78,216,.04)'"
-          ondrop="event.preventDefault();this.style.borderColor='rgba(96,165,250,.3)';this.style.background='rgba(29,78,216,.04)';importHandleDrop(event)">
-          <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="importHandleFile(event)">
-          <div style="font-size:40px;margin-bottom:10px;opacity:.6">📊</div>
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px">Merkez ekranından aldığınız Excel'i buraya sürükleyin veya tıklayın</div>
-          <div style="font-size:11px;color:var(--text2)">.xlsx · .xls · .csv</div>
+        <h3 style="color:var(--gold2);margin-top:0">📥 Rezervasyon İçe Aktar (Excel / CSV)</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.8">
+          Excel veya CSV dosyasından rezervasyonları toplu aktarın.<br>
+          <b style="color:var(--gold)">Not:</b> Dosyada <b>ciktiSaati</b> dolu ise → <b>GİRDİ + ÇIKTI</b> otomatik işaretlenir. <b>girdiSaati</b> dolu ise → sadece <b>GİRDİ</b> işaretlenir.
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
+          <input type="file" id="rezImportFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="importRezervasyonlar(event)">
+          <button class="btn-gold" onclick="document.getElementById('rezImportFile').click()">📂 Dosya Seç ve Aktar</button>
+          <a href="/sample-sheets/Reservations.csv" download class="btn-dark btn-sm">⬇ Örnek Dosya İndir</a>
         </div>
+        <div id="importProgress" style="display:none;padding:12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:8px;font-size:13px;color:var(--text2);margin-bottom:12px"></div>
+        <div id="importResult"></div>
       </div>
-
-      <!-- Önizleme -->
-      <div id="importPreview" style="display:none">
-        <div class="panel-card">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-            <h3 style="color:var(--gold2);margin:0;flex:1">🔍 Önizleme <span id="importCount" style="font-size:12px;color:var(--text2)"></span></h3>
-            <button class="btn-dark btn-sm" onclick="importTemizle()">✕ İptal</button>
-            <button class="btn-dark btn-sm" onclick="importOnizlemeIndir()">⬇ Önizleme İndir</button>
-            <button class="btn-gold btn-sm" id="importBaslatBtn" onclick="importBaslat()">🚀 Firebase'e Aktar</button>
-          </div>
-          <div class="grid grid4" style="margin-bottom:14px">
-            <div class="panel-card" style="text-align:center;padding:12px;background:rgba(0,0,0,.2)">
-              <div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">TOPLAM</div>
-              <div style="font-size:26px;font-weight:900;color:var(--gold2)" id="istTotal">0</div>
-            </div>
-            <div class="panel-card" style="text-align:center;padding:12px;background:rgba(20,83,45,.2);border-color:rgba(34,197,94,.3)">
-              <div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">HAZIR</div>
-              <div style="font-size:26px;font-weight:900;color:#bbf7d0" id="istOk">0</div>
-            </div>
-            <div class="panel-card" style="text-align:center;padding:12px;background:rgba(120,53,15,.2);border-color:rgba(251,191,36,.3)">
-              <div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">UYARI</div>
-              <div style="font-size:26px;font-weight:900;color:#fde68a" id="istWarn">0</div>
-            </div>
-            <div class="panel-card" style="text-align:center;padding:12px;background:rgba(127,29,29,.2);border-color:rgba(248,113,113,.3)">
-              <div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">HATA</div>
-              <div style="font-size:26px;font-weight:900;color:#fca5a5" id="istErr">0</div>
-            </div>
-          </div>
-          <div id="importWarnBox" style="display:none;background:rgba(120,53,15,.2);border:1px solid rgba(251,191,36,.35);border-radius:10px;padding:11px 14px;font-size:12px;color:#fde68a;margin-bottom:12px"></div>
-          <div class="table-wrap" style="max-height:380px;overflow-y:auto">
-            <table>
-              <thead><tr><th>#</th><th>Tarih</th><th>Otel</th><th>KartNo</th><th>Uyruk</th><th>Pax</th><th>Ç</th><th>Giriş</th><th>Çıkış</th><th>Ayak</th><th>Servisçi</th><th>Durum</th></tr></thead>
-              <tbody id="importPreviewBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- İlerleme -->
-      <div id="importProgress" style="display:none">
-        <div class="panel-card">
-          <h3 style="color:var(--gold2);margin-top:0" id="importProgLabel">Hazırlanıyor...</h3>
-          <div class="grid grid4" style="margin-bottom:12px">
-            <div style="text-align:center;background:rgba(0,0,0,.2);border:1px solid var(--b2);border-radius:10px;padding:10px"><div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">TOPLAM</div><div style="font-size:20px;font-weight:900;color:var(--gold2)" id="iprTotal">0</div></div>
-            <div style="text-align:center;background:rgba(20,83,45,.2);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:10px"><div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">BAŞARILI</div><div style="font-size:20px;font-weight:900;color:#bbf7d0" id="iprOk">0</div></div>
-            <div style="text-align:center;background:rgba(120,53,15,.2);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:10px"><div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">UYARI</div><div style="font-size:20px;font-weight:900;color:#fde68a" id="iprWarn">0</div></div>
-            <div style="text-align:center;background:rgba(127,29,29,.2);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:10px"><div style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">HATA</div><div style="font-size:20px;font-weight:900;color:#fca5a5" id="iprErr">0</div></div>
-          </div>
-          <div style="background:rgba(0,0,0,.3);border-radius:999px;height:10px;overflow:hidden;margin-bottom:8px">
-            <div id="importProgBar" style="height:100%;border-radius:999px;background:linear-gradient(90deg,#b8872d,#f3cf75);transition:width .3s;width:0%"></div>
-          </div>
-          <div style="font-size:12px;color:var(--text2);text-align:center;margin-bottom:12px" id="importProgTxt">0 / 0</div>
-          <div id="importLog" style="background:rgba(0,0,0,.4);border:1px solid var(--b2);border-radius:10px;padding:12px;max-height:200px;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.8"></div>
-          <div id="importDoneBtns" style="display:none;margin-top:12px;justify-content:flex-end;gap:8px">
-            <button class="btn-dark btn-sm" onclick="importTemizle()">↺ Yeni Aktarım</button>
-            <button class="btn-gold btn-sm" onclick="openTab(1)">✅ Bitti</button>
-          </div>
-        </div>
-      </div>
-    </div><!-- /tabContent8 -->
+    </div>
 
   </section>
 </div>
@@ -402,22 +326,14 @@
 showApiWarning();
 // ── Kullanıcı Doğrulama ──
 (function(){
-  const u = JSON.parse(localStorage.getItem('pianoUser')||'null');
+  const u = JSON.parse(sessionStorage.getItem('pianoUser')||'null');
   if (!u || u.role !== 'admin') {
-    localStorage.removeItem('pianoUser');
+    sessionStorage.removeItem('pianoUser');
     window.location.replace('../giris/index.html');
-    return;
   }
   window._pianoUser = u;
-  // Admin adı üst çubukta göster
-  const lbl = document.getElementById('adminUserLabel');
-  if(lbl) lbl.textContent = '· ' + (u.name || u.username || 'Admin');
 })();
-function logout(){
-  localStorage.removeItem('pianoUser');
-  localStorage.removeItem('pianoRemember');
-  window.location.href='../giris/index.html';
-}
+function logout(){ sessionStorage.removeItem('pianoUser'); window.location.href='../giris/index.html'; }
 
 let logsCache = [], hotelsData = [], adminRaporData = null, adminPerfData = null;
 
@@ -441,7 +357,7 @@ function openAdmin() {
 
 // ── Tab ────────────────────────────────────────────────────────
 function openTab(n) {
-  [1,2,3,4,5,6,7,8].forEach(i => {
+  [1,2,3,4,5,6,7].forEach(i => {
     document.getElementById("tabContent"+i).style.display = i===n?"block":"none";
     document.getElementById("tab"+i).classList.toggle("active", i===n);
   });
@@ -453,6 +369,16 @@ function setAdminRapor6Range(range) {
   if (range==="today") { document.getElementById("r6Start").value=t; document.getElementById("r6End").value=t; }
   else if (range==="week")  { document.getElementById("r6Start").value=weekStart(t); document.getElementById("r6End").value=t; }
   else if (range==="month") { document.getElementById("r6Start").value=monthStart(t); document.getElementById("r6End").value=t; }
+  // Aktif rapor varsa yenile
+  if (_r6CurrentNum) adminRaporGoster(_r6CurrentNum);
+}
+
+function r6ApplyDate() {
+  if (_r6CurrentNum) {
+    adminRaporGoster(_r6CurrentNum);
+  } else {
+    showToast("Önce bir rapor seçin", "err");
+  }
 }
 
 async function adminExport(num) {
@@ -732,6 +658,97 @@ function rowVal(row, names) {
     if (row[n] !== undefined && row[n] !== null && String(row[n]).trim() !== "") return String(row[n]).trim();
   }
   return "";
+}
+
+async function importRezervasyonlar(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  if (typeof XLSX === "undefined") return showToast("Excel okuyucu yüklenemedi", "err");
+
+  const progress = document.getElementById("importProgress");
+  const result   = document.getElementById("importResult");
+  progress.style.display = "block";
+  progress.textContent   = "Dosya okunuyor...";
+  result.innerHTML = "";
+
+  const buf  = await file.arrayBuffer();
+  const wb   = XLSX.read(buf, { type:"array" });
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { defval:"" });
+  if (!rows.length) { progress.textContent = "Dosya boş!"; return; }
+
+  const user = JSON.parse(sessionStorage.getItem("pianoUser") || "{}");
+  let added = 0, skipped = 0, errors = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    progress.textContent = `İşleniyor: ${i+1} / ${rows.length}`;
+
+    const date  = rowVal(row, ["date","Tarih","TARİH","DATE"]);
+    const time  = rowVal(row, ["time","Saat","SAAT","TIME"]);
+    const hotel = rowVal(row, ["hotel","Otel","OTEL","Hotel Adı","OTEL ADI"]);
+    if (!date || !time || !hotel) { skipped++; continue; }
+
+    // Saat & çıkış saati
+    const girdiSaati  = rowVal(row, ["girdiSaati","Giriş Saati","GİRİŞ SAATİ","giris_saati"]) || "";
+    const ciktiSaati  = rowVal(row, ["ciktiSaati","Çıkış Saati","ÇIKIŞ SAATİ","cikis_saati"]) || "";
+
+    // ── GİRDİ / ÇIKTI OTOMATİK İŞARETLE ──
+    const girdi = !!(girdiSaati || ciktiSaati);  // girdi saati VEYA çıkış saati varsa girdi=true
+    const cikti = !!ciktiSaati;                   // sadece çıkış saati varsa cikti=true
+
+    // Satış / Boş
+    const satisRaw = String(rowVal(row, ["satis","Satış","SATIŞ","satis"])).toUpperCase();
+    const satis    = satisRaw === "TRUE" || satisRaw === "SATIŞ" || satisRaw === "EVET" || satisRaw === "1";
+
+    const rez = {
+      date,
+      time,
+      hotel,
+      adult:      Number(rowVal(row, ["adult","Yetişkin","YETİŞKİN","yetiskin"])) || 0,
+      child:      Number(rowVal(row, ["child","Çocuk","ÇOCUK","cocuk"]))   || 0,
+      nation:     rowVal(row, ["nation","nat","Uyruk","UYRUK","nation"]) || "",
+      kart:       rowVal(row, ["kart","kartno","Kart No","KART NO"])     || "",
+      ayak:       rowVal(row, ["ayak","plaka","Plaka","PLAKA"])          || "",
+      notes:      rowVal(row, ["notes","not","Not","NOT"])               || "",
+      staff1:     rowVal(row, ["staff1","T1","Tezgahtar 1"])             || "",
+      staff2:     rowVal(row, ["staff2","T2","Tezgahtar 2"])             || "",
+      staff3:     rowVal(row, ["staff3","T3","Tezgahtar 3"])             || "",
+      staff4:     rowVal(row, ["staff4","T4","Tezgahtar 4"])             || "",
+      girdi,
+      cikti,
+      girdiSaati,
+      ciktiSaati,
+      satis,
+      status:     cikti ? "COMPLETED" : "PENDING",
+      _importedAt: new Date().toISOString(),
+      _importedBy: user.username || "admin",
+    };
+
+    try {
+      await addReservation(rez);
+      added++;
+    } catch(e) {
+      errors.push(`Satır ${i+2}: ${e.message}`);
+    }
+  }
+
+  progress.textContent = `✅ Tamamlandı: ${added} eklendi, ${skipped} atlandı${errors.length ? `, ${errors.length} hata` : ""}.`;
+
+  // Sonuç özeti
+  result.innerHTML = `
+    <div style="margin-top:12px;padding:14px;background:rgba(53,217,121,.08);border:1px solid rgba(53,217,121,.2);border-radius:8px">
+      <div style="font-size:14px;font-weight:700;color:#35d979;margin-bottom:8px">✅ İçe Aktarma Tamamlandı</div>
+      <div style="font-size:13px;color:var(--text2);line-height:2">
+        📋 Toplam satır: <b style="color:var(--text)">${rows.length}</b><br>
+        ✅ Eklenen: <b style="color:#35d979">${added}</b><br>
+        ⏭ Atlanan (eksik alan): <b style="color:var(--warn)">${skipped}</b><br>
+        🔑 Girdi/Çıktı otomatik işaretlendi: <b style="color:var(--gold)">${rows.filter(r => rowVal(r,["ciktiSaati","Çıkış Saati","ÇIKIŞ SAATİ","cikis_saati"])).length} kayıt</b>
+      </div>
+    </div>`;
+
+  if (added > 0) showToast(`✅ ${added} rezervasyon aktarıldı — Girdi/Çıktı otomatik işaretlendi`);
 }
 
 async function importHotelsExcel(event) {
@@ -1246,269 +1263,6 @@ async function deleteUserUI(id, username) {
   showToast("Kullanıcı silindi");
   loadUsers();
 }
-
-// ══════════════════════════════════════════════════════════
-// İÇE AKTAR — TAB 8 — Merkez Excel formatına uygun
-// ══════════════════════════════════════════════════════════
-window._importData = [];
-
-// Sütun eşleştirme: merkez Excel'indeki kolon adları
-const IMPORT_COL_MAP = {
-  date:    ['tarih','TARIH','date'],
-  hotel:   ['acentaadi','ACENTAADI','otel','hotel','otel adı'],
-  grupbsk: ['grupbaskanadi','GRUPBASKANADI','grup başkanı','grupbaskani'],
-  kartno:  ['kartno','KARTNO','kart no','kart','kartno.'],
-  nation:  ['uyruk','UYRUK','nationality','milliyet'],
-  staff1:  ['servisciadi','SERVİSCİADI','SERVISCIADI','servisci adı','personel'],
-  staff2:  ['servisciadi2','SERVİSCİADI2','SERVISCIADI2'],
-  staff3:  ['servisciadi3','SERVİSCİADI3','SERVISCIADI3'],
-  staff4:  ['servisciadi4','SERVİSCİADI4','SERVISCIADI4'],
-  adult:   ['pax','PAX','yetişkin','yetiskin','adult'],
-  child:   ['paxcocuk','PAXCOCUK','çocuk','cocuk','child'],
-  time:    ['giris','GIRIS','giriş','saat','time'],
-  cikis:   ['cikis','CIKIS','çıkış','cikis'],
-  ayak:    ['ayak','AYAK','plaka','plate'],
-};
-
-function ipNorm(s){ return String(s||'').toLowerCase().replace(/[çÇ]/g,'c').replace(/[şŞ]/g,'s').replace(/[ğĞ]/g,'g').replace(/[ıİ]/g,'i').replace(/[öÖ]/g,'o').replace(/[üÜ]/g,'u').replace(/\s+/g,'').trim(); }
-
-function ipAutoMap(headers){
-  const map = {};
-  Object.keys(IMPORT_COL_MAP).forEach(key => {
-    const aliases = IMPORT_COL_MAP[key].map(ipNorm);
-    const found = headers.find(h => aliases.includes(ipNorm(h)));
-    map[key] = found ? headers.indexOf(found) : -1;
-  });
-  return map;
-}
-
-function ipDate(v){
-  if(!v && v!==0) return '';
-  if(typeof v==='number'){
-    const d=new Date(Math.round((v-25569)*86400*1000));
-    return d.toISOString().slice(0,10);
-  }
-  const s=String(v).trim();
-  // GG.AA.YYYY
-  const m1=s.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})$/);
-  if(m1){const y=m1[3].length===2?'20'+m1[3]:m1[3];return`${y}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;}
-  // YYYY-MM-DD
-  const m2=s.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/);
-  if(m2)return`${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
-  return s.slice(0,10);
-}
-function ipTime(v){
-  if(!v && v!==0) return '';
-  if(typeof v==='number'){const t=Math.round(v*24*60),h=Math.floor(t/60),m=t%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
-  const s=String(v).trim().replace('.',':');
-  const m=s.match(/^(\d{1,2}):(\d{2})/);
-  return m?`${m[1].padStart(2,'0')}:${m[2]}`:s;
-}
-function ipNum(v){const n=parseInt(String(v||'').trim());return isNaN(n)?0:n;}
-function ipStr(v){return String(v==null||v==='NaN'?'':v).trim();}
-
-function ipProcessRows(headers,rawRows){
-  const map=ipAutoMap(headers);
-  const g=(row,k)=>map[k]>=0?row[map[k]]:'';
-  return rawRows.map((row,i)=>{
-    const date  = ipDate(g(row,'date'));
-    const hotel = ipStr(g(row,'hotel'));
-    const time  = ipTime(g(row,'time'));
-    const errs=[]; const warns=[];
-    if(!date)  errs.push('Tarih boş');
-    if(!hotel) errs.push('Otel boş');
-    if(!time)  warns.push('Giriş saati yok');
-    if(date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) warns.push('Tarih format?');
-    return {
-      _row:i+2, date, hotel, time,
-      grupbsk: ipStr(g(row,'grupbsk')),
-      kartno:  ipStr(g(row,'kartno')),
-      nation:  ipStr(g(row,'nation')).toUpperCase()||'—',
-      staff1:  ipStr(g(row,'staff1')),
-      staff2:  ipStr(g(row,'staff2')),
-      staff3:  ipStr(g(row,'staff3')),
-      staff4:  ipStr(g(row,'staff4')),
-      adult:   ipNum(g(row,'adult'))||1,
-      child:   ipNum(g(row,'child')),
-      cikis:   ipTime(g(row,'cikis')),
-      ayak:    ipStr(g(row,'ayak')),
-      _err:errs, _warn:warns,
-      _st: errs.length?'err':warns.length?'warn':'ok'
-    };
-  });
-}
-
-window.importHandleDrop = e => { const f=e.dataTransfer.files[0]; if(f) ipReadFile(f); };
-window.importHandleFile = e => { if(e.target.files[0]) ipReadFile(e.target.files[0]); };
-
-function ipReadFile(file){
-  const ext=file.name.split('.').pop().toLowerCase();
-  const reader=new FileReader();
-  reader.onload=e=>{
-    let wb;
-    try {
-      if(ext==='csv') wb=XLSX.read(e.target.result,{type:'string',raw:false});
-      else            wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false});
-    } catch(err) { showToast('❌ Dosya okunamadı: '+err.message,'err'); return; }
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
-    if(!data||data.length<2){showToast('❌ Dosya boş','err');return;}
-    const headers=data[0].map(h=>String(h||'').trim());
-    const rawRows=data.slice(1).filter(r=>r.some(c=>c!==''&&c!=null));
-    window._importData=ipProcessRows(headers,rawRows);
-    ipShowPreview(file.name);
-  };
-  if(ext==='csv') reader.readAsText(file,'UTF-8');
-  else            reader.readAsArrayBuffer(file);
-}
-
-function ipShowPreview(fname){
-  const data=window._importData;
-  const ok=data.filter(r=>r._st==='ok').length;
-  const warn=data.filter(r=>r._st==='warn').length;
-  const err=data.filter(r=>r._st==='err').length;
-  document.getElementById('importPreview').style.display='block';
-  document.getElementById('importProgress').style.display='none';
-  document.getElementById('importCount').textContent=`— ${data.length} kayıt · "${fname}"`;
-  document.getElementById('istTotal').textContent=data.length;
-  document.getElementById('istOk').textContent=ok+warn;
-  document.getElementById('istWarn').textContent=warn;
-  document.getElementById('istErr').textContent=err;
-  document.getElementById('importBaslatBtn').textContent=`🚀 ${ok+warn} Kaydı Firebase'e Aktar`;
-  const wb=document.getElementById('importWarnBox');
-  if(err>0){wb.style.display='block';wb.innerHTML=`⚠️ <b>${err} satırda hata</b> (Tarih/Otel eksik) — bu satırlar atlanacak.`;}
-  else wb.style.display='none';
-  const tbody=document.getElementById('importPreviewBody');
-  tbody.innerHTML=data.slice(0,300).map(r=>{
-    const bg=r._st==='ok'?'rgba(20,83,45,.15)':r._st==='warn'?'rgba(120,53,15,.12)':'rgba(127,29,29,.12)';
-    const badge=r._st==='ok'
-      ?'<span class="badge exited" style="font-size:10px">✓ OK</span>'
-      :r._st==='warn'
-        ?`<span class="badge updated" style="font-size:10px" title="${r._warn.join(', ')}">⚠ ${r._warn[0]||''}</span>`
-        :`<span class="badge cancelled" style="font-size:10px" title="${r._err.join(', ')}">✕ ${r._err[0]||''}</span>`;
-    return `<tr style="background:${bg}">
-      <td style="color:var(--text2);font-size:10px">${r._row}</td>
-      <td>${r.date}</td>
-      <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r.hotel}</td>
-      <td style="font-size:11px">${r.kartno||'—'}</td>
-      <td>${r.nation}</td>
-      <td style="font-weight:800;color:var(--gold2)">${r.adult}</td>
-      <td>${r.child||0}</td>
-      <td style="font-weight:700;color:var(--gold2)">${r.time}</td>
-      <td style="color:var(--text2);font-size:11px">${r.cikis||'—'}</td>
-      <td style="font-size:11px;color:var(--text2)">${r.ayak||'—'}</td>
-      <td style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis">${r.staff1||'—'}</td>
-      <td>${badge}</td>
-    </tr>`;
-  }).join('')+(data.length>300?`<tr><td colspan="12" style="text-align:center;color:var(--text2);padding:10px">... ve ${data.length-300} kayıt daha</td></tr>`:'');
-}
-
-window.importTemizle=()=>{
-  window._importData=[];
-  document.getElementById('importPreview').style.display='none';
-  document.getElementById('importProgress').style.display='none';
-  document.getElementById('importFile').value='';
-};
-
-window.importBaslat=async()=>{
-  const data=(window._importData||[]).filter(r=>r._st!=='err');
-  if(!data.length){showToast('Aktarılacak geçerli kayıt yok','err');return;}
-  document.getElementById('importPreview').style.display='none';
-  document.getElementById('importProgress').style.display='block';
-  document.getElementById('importDoneBtns').style.display='none';
-  const log=document.getElementById('importLog');
-  const pb=document.getElementById('importProgBar');
-  const pt=document.getElementById('importProgTxt');
-  const pl=document.getElementById('importProgLabel');
-  let ok=0,warns=0,errs=0;
-  const total=data.length;
-  document.getElementById('iprTotal').textContent=total;
-  log.innerHTML='';
-  function addLog(msg,color='var(--text2)'){log.innerHTML+=`<span style="color:${color}">${msg}</span>\n`;log.scrollTop=log.scrollHeight;}
-  function upd(){
-    const pct=total>0?Math.round((ok+errs+warns)/total*100):0;
-    pb.style.width=pct+'%'; pt.textContent=`${ok+errs+warns} / ${total} (${pct}%)`;
-    document.getElementById('iprOk').textContent=ok;
-    document.getElementById('iprWarn').textContent=warns;
-    document.getElementById('iprErr').textContent=errs;
-  }
-  pl.textContent='Firebase bağlanıyor...';
-  addLog('⏳ Firebase bağlantısı kuruluyor...');
-  try{
-    // initFirebase mevcut firebase-api.js'de var
-    await initFirebase();
-    addLog('✓ Bağlantı başarılı','#bbf7d0');
-    pl.textContent=`Aktarılıyor — ${total} kayıt`;
-    for(let i=0;i<data.length;i++){
-      const r=data[i];
-      const id=Date.now()+i*7+Math.floor(Math.random()*50);
-      const rec={
-        id, date:r.date, time:r.time,
-        hotel:r.hotel, nat:r.nation, nation:r.nation,
-        adult:r.adult, child:r.child,
-        kart:r.kartno, kartno:r.kartno,
-        grupbsk:r.grupbsk,
-        staff1:r.staff1, staff2:r.staff2,
-        staff3:r.staff3, staff4:r.staff4,
-        ciktiSaati:r.cikis, ayak:r.ayak,
-        satis:false, status:'PENDING',
-        girdi:false, cikti:false,
-        createdAt:new Date().toISOString(),
-        updatedAt:new Date().toISOString(),
-        _imported:true, _importedBy:'admin',
-        _importedAt:new Date().toISOString()
-      };
-      try{
-        await fbSet(`rezervasyonlar/${id}`,rec);
-        r._st==='warn'?warns++:ok++;
-        if(i%25===0||i===data.length-1)
-          addLog(`✓ [${i+1}/${total}] ${r.date} ${r.time} — ${r.hotel}`,'#bbf7d0');
-      }catch(e){
-        errs++;
-        addLog(`✕ Satır ${r._row}: ${e.message}`,'#fca5a5');
-      }
-      upd();
-      if(i%10===9) await new Promise(res=>setTimeout(res,40));
-    }
-    pb.style.background='linear-gradient(90deg,#16a34a,#4ade80)';
-    pl.textContent='✅ Aktarım Tamamlandı!';
-    addLog(`\n═══ TAMAMLANDI ═══  Başarılı:${ok}  Uyarı:${warns}  Hata:${errs}`,ok>0?'#bbf7d0':'#fde68a');
-    showToast(`✅ ${ok+warns} rezervasyon aktarıldı`);
-    document.getElementById('importDoneBtns').style.display='flex';
-  }catch(e){
-    pl.textContent='❌ Bağlantı hatası!';
-    addLog(`Firebase hatası: ${e.message}`,'#fca5a5');
-    showToast('❌ Firebase hatası: '+e.message,'err');
-  }
-};
-
-window.importSablonIndir=()=>{
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet([
-    ['TARIH','ACENTAADI','GRUPBASKANADI','KARTNO','UYRUK','SERVISCIADI','SERVISCIADI2','SERVISCIADI3','SERVISCIADI4','PAX','PAXCOCUK','GIRIS','CIKIS','AYAK'],
-    ['17.05.2026','ARMAS GUL BEACH OTEL','PIANO REHBER',2086,'RUS','NAZIM MURATOV','ELMIRA TEZ.','','',3,0,'17:00','17:57','1.AYAK'],
-    ['17.05.2026','MARTI MYRA OTEL','PIANO REHBER',2095,'RUS','BAHTIYAR ASLITURK','VIKTORIA LATISHOVA','','',4,4,'17:00','','1.AYAK'],
-    ['18.05.2026','LABADA OTEL','PIANO REHBER',2066,'LİTVANYA','ZEKI KASAP','LENURA ŞAHİN','','',2,0,'10:30','11:30','2.AYAK'],
-    ['18.05.2026','COMFORT BEACH OTEL','PIANO REHBER',2057,'BELARUS','HALIL HASANOGLU','TAMILA TEZ.','','',2,0,'16:00','','1.AYAK'],
-  ]);
-  ws['!cols']=[{wch:12},{wch:26},{wch:16},{wch:8},{wch:10},{wch:20},{wch:20},{wch:14},{wch:14},{wch:5},{wch:8},{wch:8},{wch:8},{wch:10}];
-  XLSX.utils.book_append_sheet(wb,ws,'Rezervasyonlar');
-  XLSX.writeFile(wb,'piano_deri_sablon.xlsx');
-  showToast('✅ Şablon indirildi');
-};
-
-window.importOnizlemeIndir=()=>{
-  if(!window._importData||!window._importData.length) return;
-  const wb=XLSX.utils.book_new();
-  const rows=[['#','Tarih','Otel','KartNo','Uyruk','Pax','Çocuk','Giriş','Çıkış','Ayak','Servisçi','Durum']];
-  window._importData.forEach(r=>rows.push([
-    r._row,r.date,r.hotel,r.kartno,r.nation,r.adult,r.child,r.time,r.cikis,r.ayak,r.staff1,
-    r._st==='ok'?'Hazır':r._st==='warn'?'Uyarı':'Hata'
-  ]));
-  const ws=XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb,ws,'Önizleme');
-  XLSX.writeFile(wb,'onizleme.xlsx');
-};
 
 // ── Rapor tab init
 window.addEventListener("DOMContentLoaded",()=>{
