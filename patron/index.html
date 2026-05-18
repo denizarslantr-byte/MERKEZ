@@ -205,10 +205,10 @@ function showTab(t) {
 // ── Tarih Nav ─────────────────────────────────────────────────
 function fmt(iso){if(!iso)return'';const p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function updateHdr(){const d=new Date(curDate+'T00:00:00');dlbl.innerText=fmt(curDate);dwlbl.innerText=DAYS[d.getDay()];hd.value=curDate;}
-function changeDay(n){curDate=addDays(curDate,n);updateHdr();load();}
-function goToday(){curDate=todayStr();updateHdr();load();}
+function changeDay(n){curDate=addDays(curDate,n);updateHdr();load(true);}
+function goToday(){curDate=todayStr();updateHdr();load(true);}
 function openPicker(){hd.click();}
-function onPick(){if(hd.value){curDate=hd.value;updateHdr();load();}}
+function onPick(){if(hd.value){curDate=hd.value;updateHdr();load(true);}}
 
 // ── Status ────────────────────────────────────────────────────
 function status(r){
@@ -350,8 +350,9 @@ async function loadRapor() {
 }
 
 // ── Load ──────────────────────────────────────────────────────
-async function load(){
-  if (activeTab === 'list') {
+let _firstLoad = true;
+async function load(showSpinner){
+  if (showSpinner && activeTab === 'list') {
     document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
   }
   try{
@@ -360,15 +361,16 @@ async function load(){
     updateStats();
     if (activeTab === 'list') render();
     footer.innerText='Son güncelleme: '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    _firstLoad=false;
   }catch(e){
-    document.getElementById('content').innerHTML='<div class="loading"><div style="font-size:28px">⚠️</div>Bağlantı hatası.</div>';
+    if(_firstLoad) document.getElementById('content').innerHTML='<div class="loading"><div style="font-size:28px">⚠️</div>Bağlantı hatası.</div>';
   }
 }
 
-async function refresh(){rbtn.classList.add('spin');await load();rbtn.classList.remove('spin');}
+async function refresh(){rbtn.classList.add('spin');await load(true);rbtn.classList.remove('spin');}
 updateHdr();
-load();
-setInterval(load,15000);
+load(true);
+setInterval(()=>load(false),20000);
 </script>
 </body>
 </html>
