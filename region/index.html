@@ -209,24 +209,26 @@ function render(){
 // ── Load ──────────────────────────────────────────────────
 let _rfirst = true;
 async function load(showSpinner){
-  if(showSpinner){
+  if(showSpinner && _rfirst){
     document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
   }
-  try{
-    const data=await getReservations(curDate);
-    all=Array.isArray(data)?data:[];
-    updateStats();
-    render();
-    footer.innerText='Son güncelleme: '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    _rfirst=false;
-  }catch(e){
-    if(_rfirst) document.getElementById('content').innerHTML='<div class="loading"><div style="font-size:28px">⚠️</div>Bağlantı hatası.</div>';
-  }
+  const data = await getReservations(curDate); // throws → retry catches
+  all=Array.isArray(data)?data:[];
+  updateStats();
+  render();
+  footer.innerText='Son güncelleme: '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  _rfirst=false;
 }
 async function refresh(){rbtn.classList.add('spin');await load(true);rbtn.classList.remove('spin');}
 
 updateHdr();
-setTimeout(()=>load(true), 300);
+async function waitAndLoadR() {
+  for (let i = 0; i < 20; i++) {
+    try { await load(i===0); return; }
+    catch(e) { await new Promise(r => setTimeout(r, 600)); }
+  }
+}
+waitAndLoadR();
 setInterval(()=>load(false),20000);
 </script>
 </body>
