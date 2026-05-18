@@ -687,7 +687,7 @@ function renderReservations() {
                 <td><input type="checkbox" ${String(r.girdi).toUpperCase()==="TRUE"?"checked":""} onchange="updateGirdi('${r.id}',this.checked)" ${dis}></td>
                 <td><input type="checkbox" ${String(r.cikti).toUpperCase()==="TRUE"?"checked":""} onchange="updateCikti('${r.id}',this.checked)" ${dis}></td>
                 <td><input type="time" class="ti" id="csaat_${r.id}" value="${r.ciktiSaati||''}" ${dis}></td>
-                <td><input type="checkbox" id="satis_${r.id}" ${isSatis?"checked":""} ${dis} title="Satış"></td>
+                <td><input type="checkbox" id="satis_${r.id}" ${isSatis?"checked":""} ${dis} title="Satış" onchange="toggleSatis('${r.id}',this.checked)"></td>
                 <td>${fmtDate(r.date)}</td>
                 <td><b>${r.time}</b></td>
                 <td style="max-width:90px;overflow:hidden;text-overflow:ellipsis">${r.hotel}</td>
@@ -724,6 +724,25 @@ function renderReservations() {
   setTimeout(() => restoreRowValues(_saved), 10);
 }
 // ── Rezervasyon İşlemleri ──────────────────────────────────────
+async function toggleSatis(id, checked) {
+  // Önce checkbox'ı hemen işaretli tut (loadAll resetlemesin diye geçici)
+  const cb = document.getElementById("satis_" + id);
+  if (cb) cb.checked = checked;  // optimistic UI
+
+  await updateReservation(id, {
+    satis: checked ? "TRUE" : "",
+    updatedAt: new Date().toISOString()
+  });
+
+  // reservations array'ini de güncelle (loadAll çağırmadan)
+  const r = reservations.find(x => String(x.id) === String(id) || String(x._key) === String(id));
+  if (r) r.satis = checked ? "TRUE" : "";
+
+  // Sadece özeti güncelle, satırları yeniden çizme
+  renderSummary();
+  showToast(checked ? "💰 Satış işaretlendi" : "Satış kaldırıldı");
+}
+
 async function updateGirdi(id, checked) {
   await updateReservation(id, { girdi:checked?"TRUE":"", status:checked?"IN_STORE":"PENDING" });
   // Sadece lokal state güncelle, tablo yeniden çekilmesin
