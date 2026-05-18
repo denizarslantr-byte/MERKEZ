@@ -110,6 +110,11 @@ function selectRole(el) {
 
 // Önceki oturumu kontrol et
 (function checkSession(){
+  // ?logout parametresi varsa yönlendirme yapma
+  if(new URLSearchParams(location.search).has('logout')) {
+    localStorage.removeItem('pianoUser');
+    return;
+  }
   const u = JSON.parse(localStorage.getItem('pianoUser') || 'null');
   if(u && u.role && ROLE_ROUTES[u.role]) {
     window.location.replace(ROLE_ROUTES[u.role]);
