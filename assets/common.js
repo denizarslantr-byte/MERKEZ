@@ -1,5 +1,12 @@
 // Piano Deri V6.1 — Ortak Yardımcılar
 
+// XSS koruma: kullanıcı verisini HTML'e gömmeden önce kullanın
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
 function checkApiConfig() {
   const hasFirebase = typeof FIREBASE_CONFIG !== "undefined" && FIREBASE_CONFIG && FIREBASE_CONFIG.databaseURL;
   const hasAppsScript = typeof API_URL !== "undefined" && API_URL && !API_URL.includes("BURAYA_APPS_SCRIPT");
