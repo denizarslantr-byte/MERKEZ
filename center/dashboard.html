@@ -65,8 +65,8 @@
       <span id="userLabel" style="font-size:11px;color:var(--text2)"></span>
       <button class="btn-dark btn-sm" onclick="logout()" style="padding:6px 10px;font-size:12px" title="Çıkış">⏏ Çıkış</button>
       <div style="display:flex;gap:6px">
-        <button class="btn-gold btn-sm" onclick="exportXLS('all')" style="padding:7px 11px" title="Tüm rezervasyonları programa göre gruplandırarak indir">⬇ Program (Tümü)</button>
-        <button class="btn-gold btn-sm" onclick="exportXLS('new')" style="padding:7px 11px;background:linear-gradient(135deg,#4ade80,#16a34a);color:#052e16" title="✔ İşaretlenen saat gruplarını programa göre indir (3 boş satır ayırıcı)">⬇ Program (Seçili)</button>
+        <button class="btn-gold btn-sm" onclick="exportXLS('all')" style="padding:7px 11px" title="O günkü tüm rezervasyonlar">⬇ Tümü</button>
+        <button class="btn-gold btn-sm" onclick="exportXLS('new')" style="padding:7px 11px;background:linear-gradient(135deg,#4ade80,#16a34a);color:#052e16" title="İşaretli saat dilimlerindeki yeni rezervasyonlar">⬇ Yeni</button>
         <button class="btn-dark btn-sm" onclick="exportNoPlateXLS()" style="padding:7px 11px" title="Plaka girilmeyen rezervasyonlar">⬇ Araç Liste</button>
       </div>
     </div>
@@ -1113,123 +1113,83 @@ function setLastExportTime() {
   localStorage.setItem("lastExportTime_" + datePicker.value, new Date().toISOString());
 }
 
-// ─── PROGRAM EXCEL EXPORT ────────────────────────────────────────────────────
-// Format: ACENTAADI|GIRIS|PAX|PAXC|KARTNO|NOTU|UYRUK|SERVISCİADI|SERVISCİADI2|KARTNO2|AÇIKLAMA|PLAKA
-// Gruplama: işaretli saat kutucuklarına göre; gruplar arasında 3 boş satır
 function exportXLS(mode = "all") {
-  let list = visibleReservations().filter(r => r.status !== "CANCELLED");
+  const acentaMap = {};
+  hotels.forEach(h => { acentaMap[h.hotel] = h.acentaCode||""; });
 
-  // ── Hangi rezervasyonlar export edilecek? ────────────────────
+  let list = visibleReservations();
+
   if (mode === "new") {
-    // Saat başlığındaki "Rapora ekle" kutucukları işaretliyse → o saatleri al
-    const checkedTimes = [...document.querySelectorAll('.time-slot-check:checked')]
-                          .map(cb => cb.dataset.time);
+    // İptal olanları çıkar
+    list = list.filter(r => r.status !== "CANCELLED");
+
+    // İşaretli saat kutucuklarını kontrol et
+    const checkedTimes = [...document.querySelectorAll('.time-slot-check:checked')].map(cb => cb.dataset.time);
     if (checkedTimes.length > 0) {
       list = list.filter(r => checkedTimes.includes(r.time));
       if (!list.length) return showToast("İşaretli saatlerde rezervasyon yok", "err");
+      showToast(`✅ ${list.length} kayıt aktarılıyor (${checkedTimes.length} saat seçili)`);
     } else {
-      // Kutucuk işaretli değilse → son exporttan bu yana yenileri al
+      // Kutucuk işaretli yoksa son exporttan sonra eklenenleri al
       const lastTime = getLastExportTime();
       if (lastTime) {
         const lastMs = new Date(lastTime).getTime();
-        list = list.filter(r => r.createdAt && new Date(r.createdAt).getTime() > lastMs);
-        if (!list.length) {
-          showToast("Son exporttan bu yana yeni rezervasyon yok — saat kutucuklarını işaretleyin", "err");
+        const newOnes = list.filter(r => {
+          const createdMs = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+          return createdMs > lastMs;
+        });
+        if (!newOnes.length) {
+          showToast("Son exporttan bu yana yeni rezervasyon yok — saat kutucuklarını işaretleyerek seçim yapabilirsiniz", "err");
           return;
         }
+        list = newOnes;
+        showToast(`✅ ${list.length} yeni kayıt aktarılıyor`);
+      } else {
+        showToast(`✅ ${list.length} kayıt aktarılıyor (ilk export)`);
       }
     }
+  } else {
+    if (!list.length) return showToast("Aktarılacak rezervasyon yok","err");
   }
 
-  if (!list.length) return showToast("Aktarılacak rezervasyon yok", "err");
-
-  // ── Saate göre grupla ────────────────────────────────────────
-  const times = [...new Set(list.map(r => r.time))].sort();
-  const grouped = {};
-  times.forEach(t => { grouped[t] = list.filter(r => r.time === t); });
-
-  // ── Satırları oluştur ────────────────────────────────────────
-  // Başlık
-  const HEADERS = [
-    "ACENTAADI", "GIRIS", "PAX", "PAXC",
-    "KARTNO", "NOTU", "UYRUK",
-    "SERVİSCİADİ", "SERVİSCİADİ2",
-    "KARTNO", "AÇIKLAMA", "PLAKA"
+  const headers = [
+    "ACENTAKOD","TARIH","ACENTAADI","GRUPBASKANADI",
+    "KARTNO","UYRUK",
+    "SERVISCIADI","SERVISCIADI2","SERVISCIADI3","SERVISCIADI4",
+    "PAX","PAXCOCUK","GIRIS","CIKIS","AYAK",
+    "SUBEKOD","SUBEADI"
   ];
 
-  const EMPTY_ROW = Array(HEADERS.length).fill("");   // boş satır sabiti
+  const rows = list.map(r => [
+    acentaMap[r.hotel] || "",
+    fmtDateDot(r.date),
+    r.hotel,
+    "PIANO REHBER",
+    r.kart||"",
+    r.nation,
+    r.staff1||"", r.staff2||"", r.staff3||"", r.staff4||"",
+    Number(r.adult)||0,
+    Number(r.child)||0,
+    r.time,
+    r.ciktiSaati || "",
+    "1.AYAK",                  // her zaman sabit
+    "1",
+    "MERKEZ"
+  ]);
 
-  // Ödeme tipi → plaka lookup (DOM'dan)
-  function getPlaka(r) {
-    const sel = document.getElementById("plaka_" + r.id);
-    return sel ? sel.value : (r.ayak || "");
-  }
-  function getStaff1(r) {
-    const sel = document.getElementById("s1_" + r.id);
-    return sel ? sel.value : (r.staff1 || "");
-  }
-  function getStaff2(r) {
-    const sel = document.getElementById("s2_" + r.id);
-    return sel ? sel.value : (r.staff2 || "");
-  }
-  function getKart(r) {
-    const inp = document.getElementById("kart_" + r.id);
-    return inp ? inp.value : (r.kart || "");
-  }
-
-  const allRows = [HEADERS, EMPTY_ROW];   // başlık + 1 boş satır
-
-  times.forEach((t, groupIdx) => {
-    // Her saat grubu için verilerini ekle
-    grouped[t].forEach(r => {
-      allRows.push([
-        r.hotel       || "",          // ACENTAADI
-        r.time        || "",          // GIRIS
-        Number(r.adult)  || 0,       // PAX
-        Number(r.child)  || 0,       // PAXC
-        getKart(r),                  // KARTNO
-        r.notes       || "",          // NOTU
-        r.nation      || "",          // UYRUK
-        getStaff1(r),                // SERVİSCİADİ
-        getStaff2(r),                // SERVİSCİADİ2
-        "",                          // KARTNO (2. kart – boş)
-        r.notes       || "",          // AÇIKLAMA (not tekrar)
-        getPlaka(r)                  // PLAKA
-      ]);
-    });
-
-    // Son gruptan sonra da 3 boş satır ekle
-    allRows.push(EMPTY_ROW, EMPTY_ROW, EMPTY_ROW);
-  });
-
-  // Son 3 boş satırı çıkar (dosyanın sonunda gereksiz)
-  while (allRows.length && allRows[allRows.length - 1].every(c => c === "")) {
-    allRows.pop();
-  }
-
-  // ── XLSX oluştur ─────────────────────────────────────────────
-  const ws = XLSX.utils.aoa_to_sheet(allRows);
-
-  // Kolon genişlikleri
-  ws["!cols"] = [28, 8, 6, 6, 12, 20, 12, 18, 18, 12, 20, 12].map(w => ({ wch: w }));
-
-  // Başlık satırı kalın
-  for (let c = 0; c < HEADERS.length; c++) {
-    const cell = ws[XLSX.utils.encode_cell({ r: 0, c })];
-    if (cell) cell.s = { font: { bold: true } };
-  }
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws["!cols"] = [20,14,24,14,10,12,16,16,16,16,6,8,8,8,10,8,10].map(w=>({wch:w}));
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "sayfa1");
-
-  const tarih = fmtDateDot(datePicker.value).replace(/\./g, "-");
+  const tarih = fmtDateDot(datePicker.value).replace(/\./g,"-");
   const suffix = mode === "new" ? "-yeni" : "";
-  XLSX.writeFile(wb, `piano-deri-${tarih}${suffix}.xls`, { bookType: "xls" });
+  XLSX.writeFile(wb, `piano-deri-${tarih}${suffix}.xls`, { bookType:"xls" });
 
+  // "Yeni" exportta zamanı güncelle
   if (mode === "new") setLastExportTime();
-  showToast(`✅ Excel indirildi — ${list.length} kayıt, ${times.length} saat grubu`);
+  showToast(`✅ Excel indirildi (${list.length} kayıt)`);
 }
-
 
 function exportNoPlateXLS() {
   const list = visibleReservations()
