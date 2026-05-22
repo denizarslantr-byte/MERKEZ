@@ -249,7 +249,7 @@
         <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px">Günlük Özet</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
           <div style="text-align:center"><div id="sumTotal" style="font-size:20px;font-weight:900;color:var(--gold2)">—</div><div style="font-size:9px;color:var(--text2)">REZERVASYON</div></div>
-          <div style="text-align:center"><div id="sumPax"   style="font-size:20px;font-weight:900;color:var(--gold2)">—</div><div style="font-size:9px;color:var(--text2)">PAX</div></div>
+          <div style="text-align:center"><div id="sumBekleyen" style="font-size:20px;font-weight:900;color:var(--gold2)">—</div><div style="font-size:9px;color:var(--text2)">BEKLEYEN</div></div>
           <div style="text-align:center"><div id="sumIn"    style="font-size:20px;font-weight:900;color:#fde68a">—</div><div style="font-size:9px;color:var(--text2)">İÇERİDE</div></div>
           <div style="text-align:center"><div id="sumOut"   style="font-size:20px;font-weight:900;color:#bbf7d0">—</div><div style="font-size:9px;color:var(--text2)">TAMAMLANDI</div></div>
           <div style="text-align:center"><div id="sumSatis" style="font-size:20px;font-weight:900;color:#60a5fa">—</div><div style="font-size:9px;color:var(--text2)">SATIŞ</div></div>
@@ -580,12 +580,14 @@ function renderStaffPanel() {
 
 function renderSummary() {
   const total=reservations.length;
-  const pax=reservations.reduce((s,r)=>s+(Number(r.adult)||0)+(Number(r.child)||0),0);
   const inside=reservations.filter(r=>String(r.girdi).toUpperCase()==="TRUE"&&String(r.cikti).toUpperCase()!=="TRUE"&&r.status!=="CANCELLED").length;
   const done=reservations.filter(r=>String(r.cikti).toUpperCase()==="TRUE").length;
   const satis=reservations.filter(r=>String(r.satis||"").toUpperCase()==="TRUE"&&r.status!=="CANCELLED").length;
   const bos=reservations.filter(r=>String(r.cikti).toUpperCase()==="TRUE"&&String(r.satis||"").toUpperCase()!=="TRUE").length;
-  sumTotal.innerText=total; sumPax.innerText=pax; sumIn.innerText=inside; sumOut.innerText=done;
+  const bekleyen=Math.max(0, total - inside - done);
+  sumTotal.innerText=total;
+  if(document.getElementById("sumBekleyen")) document.getElementById("sumBekleyen").innerText=bekleyen;
+  sumIn.innerText=inside; sumOut.innerText=done;
   if(document.getElementById("sumSatis")) document.getElementById("sumSatis").innerText=satis;
   if(document.getElementById("sumBos"))   document.getElementById("sumBos").innerText=bos;
 }
