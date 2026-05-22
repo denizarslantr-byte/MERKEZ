@@ -28,6 +28,28 @@
   /* Saat satırı checkbox */
   .time-slot-check { width:18px;height:18px;cursor:pointer;accent-color:var(--gold2);vertical-align:middle;margin-left:auto; }
   .time-title-row { display:flex;align-items:center;gap:8px; }
+  /* ── YAZDIR: yatay sayfa, dar kenarlar, sütunlar sığsın ── */
+  @media print {
+    @page { size: A4 landscape; margin: 6mm 6mm 6mm 6mm; }
+    body, .app { background: #fff !important; color: #000 !important; }
+    .sidebar, .top-bar, #newResNotifStack, .action-cell,
+    .time-slot-check, .time-title-row label,
+    button, .btn-gold, .btn-dark, .btn-blue, .btn-red,
+    select.si, input.ci, input[type="time"].ti,
+    input[type="checkbox"] { display: none !important; }
+    .center-layout { display: block !important; }
+    .main-col { width: 100% !important; padding: 0 !important; }
+    .reservationSection, .panel-card, .table-wrap { box-shadow: none !important; border: none !important; }
+    .table { width: 100% !important; table-layout: fixed !important; font-size: 8pt !important; border-collapse: collapse !important; }
+    .table th, .table td { border: 0.5pt solid #999 !important; padding: 2pt 3pt !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .table th { background: #ddd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* Gizlenmeyecek checkbox sütunlarının genişliğini sıfırla */
+    .table td:first-child, .table th:first-child,
+    .table td:nth-child(2), .table th:nth-child(2),
+    .table td:nth-child(4), .table th:nth-child(4) { width: 0 !important; padding: 0 !important; overflow: hidden; }
+    .time-title { font-size: 10pt !important; font-weight: bold !important; margin: 6pt 0 2pt !important; }
+    a { text-decoration: none !important; }
+  }
   </style>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#d6a63f">
@@ -68,6 +90,7 @@
         <button class="btn-gold btn-sm" onclick="exportXLS('all')" style="padding:7px 11px" title="O günkü tüm rezervasyonlar">⬇ Tümü</button>
         <button class="btn-gold btn-sm" onclick="exportXLS('new')" style="padding:7px 11px;background:linear-gradient(135deg,#4ade80,#16a34a);color:#052e16" title="İşaretli saat dilimlerindeki yeni rezervasyonlar">⬇ Yeni</button>
         <button class="btn-dark btn-sm" onclick="exportNoPlateXLS()" style="padding:7px 11px" title="Plaka girilmeyen rezervasyonlar">⬇ Araç Liste</button>
+        <button class="btn-gold btn-sm" onclick="exportMertExcel()" style="padding:7px 11px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#1c1917" title="Seçili saatleri Mert formatında indir — saatler arasında 3 boş satır">⬇ Mert Excel</button>
       </div>
     </div>
   </div>
@@ -1190,6 +1213,116 @@ function exportXLS(mode = "all") {
   if (mode === "new") setLastExportTime();
   showToast(`✅ Excel indirildi (${list.length} kayıt)`);
 }
+
+// ─── MERT EXCEL ──────────────────────────────────────────────────────────────
+// Format: ACENTAADI|GIRIS|PAX|PAXC|KARTNO|NOTU|UYRUK|SERVİSCİADİ|SERVİSCİADİ2|KARTNO|AÇIKLAMA|PLAKA
+// • Saat başlığındaki "Rapora ekle" kutucukları işaretliyse → sadece o saatler
+// • Hiç işaretli yoksa → tüm aktif rezervasyonlar
+// • Saat grupları arasında 3 boş satır, başlıktan sonra boş satır YOK
+function exportMertExcel() {
+  let list = visibleReservations().filter(r => r.status !== "CANCELLED");
+
+  // Seçili saat kutucuklarına göre filtrele
+  const checkedTimes = [...document.querySelectorAll('.time-slot-check:checked')]
+                        .map(cb => cb.dataset.time);
+  if (checkedTimes.length > 0) {
+    list = list.filter(r => checkedTimes.includes(r.time));
+    if (!list.length) return showToast("İşaretli saatlerde rezervasyon yok", "err");
+  }
+  if (!list.length) return showToast("Aktarılacak rezervasyon yok", "err");
+
+  // Saate göre grupla (sıralı)
+  const times = [...new Set(list.map(r => r.time))].sort();
+  const grouped = {};
+  times.forEach(t => { grouped[t] = list.filter(r => r.time === t); });
+
+  // DOM'dan güncel değerleri oku
+  const getV = (prefix, id, fallback) => {
+    const el = document.getElementById(prefix + id);
+    return el ? (el.value || "") : (fallback || "");
+  };
+
+  const HEADERS = [
+    "ACENTAADI","GIRIS","PAX","PAXC",
+    "KARTNO","NOTU","UYRUK",
+    "SERVİSCİADİ","SERVİSCİADİ2",
+    "KARTNO","AÇIKLAMA","PLAKA"
+  ];
+  const EMPTY = Array(HEADERS.length).fill("");
+
+  // Satırları oluştur
+  const allRows = [HEADERS]; // başlık → hemen ardından veriler (boş satır YOK)
+
+  times.forEach((t, gi) => {
+    // Grup satırları
+    grouped[t].forEach(r => {
+      allRows.push([
+        r.hotel  || "",                            // ACENTAADI
+        r.time   || "",                            // GIRIS
+        Number(r.adult)  || 0,                    // PAX
+        Number(r.child)  || 0,                    // PAXC
+        getV("kart_",  r.id, r.kart),             // KARTNO
+        r.notes  || "",                            // NOTU
+        r.nation || "",                            // UYRUK
+        getV("s1_", r.id, r.staff1),              // SERVİSCİADİ
+        getV("s2_", r.id, r.staff2),              // SERVİSCİADİ2
+        "",                                        // KARTNO (2. sütun — boş)
+        r.notes  || "",                            // AÇIKLAMA
+        getV("plaka_", r.id, r.ayak)              // PLAKA
+      ]);
+    });
+
+    // Son grup değilse → 3 boş satır
+    if (gi < times.length - 1) {
+      allRows.push(EMPTY, EMPTY, EMPTY);
+    }
+  });
+
+  // ── XLSX oluştur ─────────────────────────────────────────────
+  const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+  // Kolon genişlikleri
+  ws["!cols"] = [28,8,5,5,12,20,12,18,18,12,20,12].map(w => ({ wch: w }));
+
+  // Başlık satırı: kalın + açık gri arka plan
+  const borderStyle = {
+    top:    { style:"thin", color:{ rgb:"AAAAAA" } },
+    bottom: { style:"thin", color:{ rgb:"AAAAAA" } },
+    left:   { style:"thin", color:{ rgb:"AAAAAA" } },
+    right:  { style:"thin", color:{ rgb:"AAAAAA" } }
+  };
+  for (let c = 0; c < HEADERS.length; c++) {
+    const addr = XLSX.utils.encode_cell({ r:0, c });
+    if (!ws[addr]) ws[addr] = { v:"", t:"s" };
+    ws[addr].s = {
+      font: { bold:true },
+      fill: { fgColor:{ rgb:"EEEEEE" } },
+      border: borderStyle,
+      alignment: { horizontal:"center" }
+    };
+  }
+
+  // Veri satırları: kenarlık
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+  for (let R = 1; R <= range.e.r; R++) {
+    for (let C = 0; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r:R, c:C });
+      if (!ws[addr]) ws[addr] = { v:"", t:"s" };
+      ws[addr].s = ws[addr].s || {};
+      ws[addr].s.border = borderStyle;
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Program");
+
+  const tarih = fmtDateDot(datePicker.value).replace(/\./g,"-");
+  const suffix = checkedTimes.length > 0 ? "-secili" : "";
+  XLSX.writeFile(wb, `piano-deri-${tarih}-mert${suffix}.xls`, { bookType:"xls" });
+
+  showToast(`✅ Mert Excel indirildi — ${list.length} kayıt, ${times.length} saat grubu`);
+}
+
 
 function exportNoPlateXLS() {
   const list = visibleReservations()
