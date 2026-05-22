@@ -1215,14 +1215,13 @@ function exportXLS(mode = "all") {
 }
 
 // ─── MERT EXCEL ──────────────────────────────────────────────────────────────
-// Format: ACENTAADI|GIRIS|PAX|PAXC|KARTNO|NOTU|UYRUK|SERVİSCİADİ|SERVİSCİADİ2|KARTNO|AÇIKLAMA|PLAKA
-// • Saat başlığındaki "Rapora ekle" kutucukları işaretliyse → sadece o saatler
-// • Hiç işaretli yoksa → tüm aktif rezervasyonlar
-// • Saat grupları arasında 3 boş satır, başlıktan sonra boş satır YOK
+// Sütunlar: ACENTAADI|GIRIS|PAX|PAXC|KARTNO|NOTU|UYRUK|SERVİSCİADİ|SERVİSCİADİ2|KARTNO|AÇIKLAMA|PLAKA
+// • Tüm hücrelere kenarlık (boş satırlar HARİÇ)
+// • Sayfa yapısı: yatay, kenarlar 0.5 cm, sütunlar tek sayfaya sığsın
+// • Gruplar arası 3 boş satır
 function exportMertExcel() {
   let list = visibleReservations().filter(r => r.status !== "CANCELLED");
 
-  // Seçili saat kutucuklarına göre filtrele
   const checkedTimes = [...document.querySelectorAll('.time-slot-check:checked')]
                         .map(cb => cb.dataset.time);
   if (checkedTimes.length > 0) {
@@ -1231,16 +1230,16 @@ function exportMertExcel() {
   }
   if (!list.length) return showToast("Aktarılacak rezervasyon yok", "err");
 
-  // Saate göre grupla (sıralı)
-  const times = [...new Set(list.map(r => r.time))].sort();
-  const grouped = {};
-  times.forEach(t => { grouped[t] = list.filter(r => r.time === t); });
-
-  // DOM'dan güncel değerleri oku
-  const getV = (prefix, id, fallback) => {
+  // DOM'dan anlık değer oku
+  const domVal = (prefix, id, fallback) => {
     const el = document.getElementById(prefix + id);
     return el ? (el.value || "") : (fallback || "");
   };
+
+  // Saate göre grupla
+  const times = [...new Set(list.map(r => r.time))].sort();
+  const grouped = {};
+  times.forEach(t => { grouped[t] = list.filter(r => r.time === t); });
 
   const HEADERS = [
     "ACENTAADI","GIRIS","PAX","PAXC",
@@ -1248,79 +1247,126 @@ function exportMertExcel() {
     "SERVİSCİADİ","SERVİSCİADİ2",
     "KARTNO","AÇIKLAMA","PLAKA"
   ];
-  const EMPTY = Array(HEADERS.length).fill("");
+  const NCOLS = HEADERS.length; // 12
 
-  // Satırları oluştur
-  const allRows = [HEADERS]; // başlık → hemen ardından veriler (boş satır YOK)
+  // Tüm satırları oluştur (boş satırlar dahil)
+  const allRows   = [];   // veri dizisi
+  const dataFlags = [];   // true=veri satırı, false=boş/header
+
+  // Başlık
+  allRows.push(HEADERS);
+  dataFlags.push("header");
 
   times.forEach((t, gi) => {
-    // Grup satırları
     grouped[t].forEach(r => {
       allRows.push([
-        r.hotel  || "",                            // ACENTAADI
-        r.time   || "",                            // GIRIS
-        Number(r.adult)  || 0,                    // PAX
-        Number(r.child)  || 0,                    // PAXC
-        getV("kart_",  r.id, r.kart),             // KARTNO
-        r.notes  || "",                            // NOTU
-        r.nation || "",                            // UYRUK
-        getV("s1_", r.id, r.staff1),              // SERVİSCİADİ
-        getV("s2_", r.id, r.staff2),              // SERVİSCİADİ2
-        "",                                        // KARTNO (2. sütun — boş)
-        r.notes  || "",                            // AÇIKLAMA
-        getV("plaka_", r.id, r.ayak)              // PLAKA
+        r.hotel  || "",
+        r.time   || "",
+        Number(r.adult) || 0,
+        Number(r.child) || 0,
+        domVal("kart_",  r.id, r.kart),
+        r.notes  || "",
+        r.nation || "",
+        domVal("s1_",    r.id, r.staff1),
+        domVal("s2_",    r.id, r.staff2),
+        "",
+        r.notes  || "",
+        domVal("plaka_", r.id, r.ayak)
       ]);
+      dataFlags.push("data");
     });
 
-    // Son grup değilse → 3 boş satır
+    // Son grup değilse 3 boş satır
     if (gi < times.length - 1) {
-      allRows.push(EMPTY, EMPTY, EMPTY);
+      for (let i = 0; i < 3; i++) {
+        allRows.push(Array(NCOLS).fill(""));
+        dataFlags.push("empty");
+      }
     }
   });
 
-  // ── XLSX oluştur ─────────────────────────────────────────────
+  // ── XLSX sheet ───────────────────────────────────────────────
   const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-  // Kolon genişlikleri
-  ws["!cols"] = [28,8,5,5,12,20,12,18,18,12,20,12].map(w => ({ wch: w }));
-
-  // Başlık satırı: kalın + açık gri arka plan
-  const borderStyle = {
-    top:    { style:"thin", color:{ rgb:"AAAAAA" } },
-    bottom: { style:"thin", color:{ rgb:"AAAAAA" } },
-    left:   { style:"thin", color:{ rgb:"AAAAAA" } },
-    right:  { style:"thin", color:{ rgb:"AAAAAA" } }
+  // Kenarlık tanımı
+  const border = {
+    top:    { style: "thin", color: { rgb: "000000" } },
+    bottom: { style: "thin", color: { rgb: "000000" } },
+    left:   { style: "thin", color: { rgb: "000000" } },
+    right:  { style: "thin", color: { rgb: "000000" } }
   };
-  for (let c = 0; c < HEADERS.length; c++) {
-    const addr = XLSX.utils.encode_cell({ r:0, c });
-    if (!ws[addr]) ws[addr] = { v:"", t:"s" };
-    ws[addr].s = {
-      font: { bold:true },
-      fill: { fgColor:{ rgb:"EEEEEE" } },
-      border: borderStyle,
-      alignment: { horizontal:"center" }
-    };
-  }
 
-  // Veri satırları: kenarlık
-  const range = XLSX.utils.decode_range(ws["!ref"]);
-  for (let R = 1; R <= range.e.r; R++) {
-    for (let C = 0; C <= range.e.c; C++) {
-      const addr = XLSX.utils.encode_cell({ r:R, c:C });
-      if (!ws[addr]) ws[addr] = { v:"", t:"s" };
+  // Tüm satır/sütunları gez → veri ve header satırlarına kenarlık uygula
+  allRows.forEach((row, R) => {
+    if (dataFlags[R] === "empty") return; // boş satırlara kenarlık yok
+
+    for (let C = 0; C < NCOLS; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+
+      // Hücre yoksa oluştur (boş string)
+      if (!ws[addr]) ws[addr] = { v: "", t: "s" };
+
       ws[addr].s = ws[addr].s || {};
-      ws[addr].s.border = borderStyle;
+      ws[addr].s.border = border;
+
+      if (dataFlags[R] === "header") {
+        ws[addr].s.font = { bold: true, sz: 10 };
+        ws[addr].s.fill = { patternType: "solid", fgColor: { rgb: "D9D9D9" } };
+        ws[addr].s.alignment = { horizontal: "center", vertical: "center" };
+      } else {
+        ws[addr].s.font = { sz: 10 };
+        ws[addr].s.alignment = { vertical: "center" };
+      }
     }
-  }
+  });
+
+  // Satır yüksekliği: header 18px, data 16px
+  ws["!rows"] = allRows.map((_, R) =>
+    dataFlags[R] === "header" ? { hpx: 20 } :
+    dataFlags[R] === "data"   ? { hpx: 16 } : { hpx: 6 }
+  );
+
+  // Sütun genişlikleri (toplam ~250pt → A4 yatay tek sayfaya sığar)
+  ws["!cols"] = [
+    { wch: 26 }, // ACENTAADI
+    { wch:  7 }, // GIRIS
+    { wch:  5 }, // PAX
+    { wch:  5 }, // PAXC
+    { wch: 11 }, // KARTNO
+    { wch: 18 }, // NOTU
+    { wch: 10 }, // UYRUK
+    { wch: 16 }, // SERVİSCİADİ
+    { wch: 16 }, // SERVİSCİADİ2
+    { wch: 11 }, // KARTNO (2)
+    { wch: 18 }, // AÇIKLAMA
+    { wch: 11 }, // PLAKA
+  ];
+
+  // Sayfa yapısı: yatay, kenarlar 0.5 cm ≈ 18 puan, tek sayfaya sığsın
+  ws["!pageSetup"] = {
+    orientation: "landscape",
+    fitToPage:   true,
+    fitToWidth:  1,
+    fitToHeight: 0,
+    paperSize:   9  // A4
+  };
+  ws["!margins"] = {
+    left:   0.5 / 2.54,  // 0.5 cm → inch
+    right:  0.5 / 2.54,
+    top:    0.5 / 2.54,
+    bottom: 0.5 / 2.54,
+    header: 0,
+    footer: 0
+  };
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Program");
 
-  const tarih = fmtDateDot(datePicker.value).replace(/\./g,"-");
-  const suffix = checkedTimes.length > 0 ? "-secili" : "";
-  XLSX.writeFile(wb, `piano-deri-${tarih}-mert${suffix}.xls`, { bookType:"xls" });
+  const tarih = fmtDateDot(datePicker.value).replace(/\./g, "-");
+  const sfx = checkedTimes.length > 0 ? "-secili" : "";
+  XLSX.writeFile(wb, `piano-deri-${tarih}-mert${sfx}.xls`, { bookType: "xls" });
 
-  showToast(`✅ Mert Excel indirildi — ${list.length} kayıt, ${times.length} saat grubu`);
+  showToast(`✅ Mert Excel — ${list.length} kayıt, ${times.length} saat grubu`);
 }
 
 
