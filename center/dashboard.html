@@ -249,7 +249,7 @@
         <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px">Günlük Özet</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
           <div style="text-align:center"><div id="sumTotal" style="font-size:20px;font-weight:900;color:var(--gold2)">—</div><div style="font-size:9px;color:var(--text2)">REZERVASYON</div></div>
-          <div style="text-align:center"><div id="sumBekleyen" style="font-size:20px;font-weight:900;color:var(--gold2)">—</div><div style="font-size:9px;color:var(--text2)">BEKLENEN</div></div>
+          <div style="text-align:center"><div id="sumBekleyen" style="font-size:20px;font-weight:900;color:var(--gold2)">—</div><div style="font-size:9px;color:var(--text2)">BEKLEYEN</div></div>
           <div style="text-align:center"><div id="sumIn"    style="font-size:20px;font-weight:900;color:#fde68a">—</div><div style="font-size:9px;color:var(--text2)">İÇERİDE</div></div>
           <div style="text-align:center"><div id="sumOut"   style="font-size:20px;font-weight:900;color:#bbf7d0">—</div><div style="font-size:9px;color:var(--text2)">TAMAMLANDI</div></div>
           <div style="text-align:center"><div id="sumSatis" style="font-size:20px;font-weight:900;color:#60a5fa">—</div><div style="font-size:9px;color:var(--text2)">SATIŞ</div></div>
@@ -1178,7 +1178,7 @@ function exportXLS(mode = "all") {
   }
 
   const headers = [
-    "ACENTAKOD","TARIH","ACENTAADI","GRUPBASKANADI",
+    "ACENTAKOD","TARIH","ACENTAADI","GRUPBASKANADI","GRUPBASKANKOD",
     "KARTNO","UYRUK",
     "SERVISCIADI","SERVISCIADI2","SERVISCIADI3","SERVISCIADI4",
     "PAX","PAXCOCUK","GIRIS","CIKIS","AYAK",
@@ -1190,6 +1190,7 @@ function exportXLS(mode = "all") {
     fmtDateDot(r.date),
     r.hotel,
     "PIANO REHBER",
+    "329.01.30.01.0001",
     r.kart||"",
     r.nation,
     r.staff1||"", r.staff2||"", r.staff3||"", r.staff4||"",
@@ -1203,7 +1204,7 @@ function exportXLS(mode = "all") {
   ]);
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  ws["!cols"] = [20,14,24,14,10,12,16,16,16,16,6,8,8,8,10,8,10].map(w=>({wch:w}));
+  ws["!cols"] = [20,14,24,14,20,10,12,16,16,16,16,6,8,8,8,10,8,10].map(w=>({wch:w}));
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "sayfa1");
