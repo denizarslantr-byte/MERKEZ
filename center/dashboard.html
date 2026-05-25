@@ -337,7 +337,7 @@ function saveInputValues() {
       s2:      document.getElementById('s2_'    + id)?.value || '',
       s3:      document.getElementById('s3_'    + id)?.value || '',
       s4:      document.getElementById('s4_'    + id)?.value || '',
-      satis:   document.getElementById('satis_' + id)?.checked || false,
+      // satis burada kaydedilmiyor: toggleSatis anında Firebase'e yazar
     };
   });
 }
@@ -348,13 +348,8 @@ function restoreInputValues() {
       const el = document.getElementById(elId);
       if (el && val !== undefined && val !== '') el.value = val;
     };
-    const setChk = (elId, val) => {
-      const el = document.getElementById(elId);
-      if (el) el.checked = val;
-    };
     setVal('kart_'  + id, vals.kart);
     setVal('csaat_' + id, vals.csaat);
-    setChk('satis_' + id, vals.satis);
     // Plaka ve tezgahtarlar için select
     ['plaka_','s1_','s2_','s3_','s4_'].forEach((prefix, i) => {
       const key = ['plaka','s1','s2','s3','s4'][i];
@@ -365,6 +360,7 @@ function restoreInputValues() {
         if (opt) el.value = vals[key];
       }
     });
+    // satis restore edilmiyor: renderReservations r.satis Firebase değerini kullanır
   });
 }
 const today = todayStr();
@@ -638,7 +634,8 @@ function saveRowValues() {
       s3:    document.getElementById("s3_"+id)?.value || "",
       s4:    document.getElementById("s4_"+id)?.value || "",
       csaat: get("csaat_"),
-      satis: document.getElementById("satis_"+id)?.checked || false,
+      // satis burada kaydedilmiyor: toggleSatis anında Firebase'e yazar,
+      // renderReservations r.satis değerini doğrudan kullanır.
     };
   });
   return saved;
@@ -655,8 +652,7 @@ function restoreRowValues(saved) {
     if (v.s2) { const el = document.getElementById("s2_"+id); if (el) el.value = v.s2; }
     if (v.s3) { const el = document.getElementById("s3_"+id); if (el) el.value = v.s3; }
     if (v.s4) { const el = document.getElementById("s4_"+id); if (el) el.value = v.s4; }
-    const satis = document.getElementById("satis_"+id);
-    if (satis) satis.checked = v.satis;
+    // satis restore edilmiyor: Firebase değeri renderReservations tarafından atanır.
   });
 }
 
@@ -765,6 +761,7 @@ async function toggleSatis(id, checked) {
   if (cb) cb.checked = checked;  // optimistic UI
 
   await updateReservation(id, {
+    date: datePicker.value,       // ← tarih eklendi: _findReservationDate'e gerek kalmaz
     satis: checked ? "TRUE" : "",
     updatedAt: new Date().toISOString()
   });
@@ -779,7 +776,7 @@ async function toggleSatis(id, checked) {
 }
 
 async function updateGirdi(id, checked) {
-  await updateReservation(id, { girdi:checked?"TRUE":"", status:checked?"IN_STORE":"PENDING" });
+  await updateReservation(id, { date: datePicker.value, girdi:checked?"TRUE":"", status:checked?"IN_STORE":"PENDING" });
   // Sadece lokal state güncelle, tablo yeniden çekilmesin
   const r = reservations.find(x => String(x.id) === String(id));
   if (r) {
@@ -795,7 +792,7 @@ async function updateCikti(id, checked) {
   const csaat = document.getElementById("csaat_"+id)?.value || "";
   const now   = checked ? (csaat || new Date().toTimeString().slice(0,5)) : "";
   if (checked && document.getElementById("csaat_"+id)) document.getElementById("csaat_"+id).value = now;
-  await updateReservation(id, { cikti:checked?"TRUE":"", ciktiSaati:now, status:checked?"EXITED":"IN_STORE" });
+  await updateReservation(id, { date: datePicker.value, cikti:checked?"TRUE":"", ciktiSaati:now, status:checked?"EXITED":"IN_STORE" });
   // Sadece lokal state güncelle
   const r = reservations.find(x => String(x.id) === String(id));
   if (r) {
@@ -813,6 +810,7 @@ async function saveOps(id) {
   if (new Set(st).size !== st.length) return showToast("Aynı tezgahtar birden fazla seçilemez","err");
   const satis = document.getElementById("satis_"+id)?.checked ? "TRUE" : "";
   await updateReservation(id, {
+    date:       datePicker.value,
     kart:       document.getElementById("kart_"+id)?.value||"",
     ayak:       document.getElementById("plaka_"+id)?.value||"",
     ciktiSaati: document.getElementById("csaat_"+id)?.value||"",
