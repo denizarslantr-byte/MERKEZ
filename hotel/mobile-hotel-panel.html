@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Piano Deri Otel V6.0</title>
   <link rel="stylesheet" href="../assets/piano-theme.css">
+  <link rel="stylesheet" href="../assets/theme-overrides.css">
   <meta name="mobile-web-app-capable" content="yes">
-
-  <!-- PWA -->
   <link rel="manifest" href="/hotel/manifest.json">
   <meta name="theme-color" content="#d6a63f">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,10 +14,9 @@
   <meta name="apple-mobile-web-app-title" content="Piano Otel">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <script>
-    if("serviceWorker" in navigator){
-      navigator.serviceWorker.register("/hotel/sw.js",{scope:"/hotel/"})
-        .then(r=>console.log("PWA OK"))
-        .catch(e=>console.log("PWA ERR",e));
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/hotel/sw.js", { scope: "/hotel/" })
+        .catch(e => console.log("PWA ERR", e));
     }
   </script>
 </head>
@@ -33,10 +31,11 @@
 
   <div id="apiWarning" class="notice" style="display:none"></div>
 
+  <!-- Üst bar -->
   <div class="panel-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <div>
-      <div style="font-weight:700;font-size:16px;color:var(--gold2)" id="hotelName"></div>
-      <div style="font-size:11px;color:var(--text2)">Kod: <span id="hotelCode"></span></div>
+      <div style="font-weight:700;font-size:16px;color:var(--gold2)" id="hotelNameEl"></div>
+      <div style="font-size:11px;color:var(--text2)">Kod: <span id="hotelCodeEl"></span></div>
     </div>
     <div style="flex:1"></div>
     <button class="btn-dark btn-sm" onclick="showSec('entry')">✏️ Yeni Rezervasyon</button>
@@ -51,7 +50,12 @@
       <input type="hidden" id="editingId">
       <div class="grid grid2">
         <div><label>Tarih</label><input type="date" id="entryDate"></div>
-        <div><label>Saat</label><input type="text" id="entryTime" placeholder="13:30" inputmode="numeric" maxlength="5" autocomplete="off" style="font-size:18px;font-weight:700;letter-spacing:2px" oninput="formatTime(this)"></div>
+        <div><label>Saat</label>
+          <input type="text" id="entryTime" placeholder="13:30"
+            inputmode="numeric" maxlength="5" autocomplete="off"
+            style="font-size:18px;font-weight:700;letter-spacing:2px"
+            oninput="formatTime(this)">
+        </div>
         <div><label>Yetişkin</label><input type="number" id="entryAdult" value="2" min="0"></div>
         <div><label>Çocuk</label><input type="number"    id="entryChild" value="0" min="0"></div>
       </div>
@@ -80,7 +84,8 @@
         <button class="btn-dark btn-sm" onclick="changeDay(0,true)">Bugün</button>
       </div>
       <div id="listSummary" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px"></div>
-      <div id="reservationList"></div>
+      <!-- HotelReservationCard bileşeni buraya render eder -->
+      <div id="hotelResContainer"></div>
       <button class="btn-gold" style="width:100%;margin-top:12px" onclick="showSec('entry')">
         ✏️ Yeni Rezervasyon Ekle
       </button>
@@ -89,35 +94,36 @@
 
 </div>
 
-<script src="../config/config.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
-<script src="../config/firebase.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
-<script src="../assets/common.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
-<script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<!-- Bağımlılıklar -->
+<script src="../config/config.js"></script>
+<script src="../config/firebase.js"></script>
+<script src="../assets/common.js"></script>
+<script src="../assets/firebase-api.js"></script>
+
+<!-- Servis & Komponent katmanı -->
+<script src="services/hotel-reservation-service.js"></script>
+<script src="components/hotel-reservation-card.js"></script>
+<script src="utils/hotel-utils.js"></script>
+<script src="views/hotel-panel-view.js"></script>
+
 <script>
 showApiWarning();
 
+// ── Auth kontrolü ─────────────────────────────────────────────
+const _hotelName = localStorage.getItem("hotel");
+const _hotelCode = localStorage.getItem("hotelCode");
+if (!_hotelName) location.href = "login.html";
+
+document.getElementById("hotelNameEl").innerText = _hotelName || "";
+document.getElementById("hotelCodeEl").innerText = _hotelCode || "";
+document.getElementById("hotelSub").innerText    = (_hotelName || "").toUpperCase() + " — OTEL PANELİ";
+
+// ── Yardımcılar ───────────────────────────────────────────────
 function formatTime(el) {
   let v = el.value.replace(/[^0-9]/g, '');
   if (v.length > 2) v = v.slice(0,2) + ':' + v.slice(2,4);
   el.value = v;
 }
-
-const hotel = localStorage.getItem("hotel");
-const code  = localStorage.getItem("hotelCode");
-if (!hotel) location.href = "login.html";
-
-document.getElementById("hotelName").innerText = hotel || "";
-document.getElementById("hotelCode").innerText = code  || "";
-document.getElementById("hotelSub").innerText  = (hotel||"").toUpperCase() + " — OTEL PANELİ";
-
-let currentDate = todayStr();
-let hotelReservationCache = [];
-document.getElementById("entryDate").value = currentDate;
-document.getElementById("entryTime").value = "10:30";
-document.getElementById("listDate").value  = currentDate;
-
-// Uyruk dropdown
-document.getElementById("entryNation").innerHTML = nationOptions("RUS");
 
 function logout() {
   localStorage.removeItem("hotel");
@@ -126,188 +132,129 @@ function logout() {
 }
 
 function showSec(sec) {
-  document.getElementById("secEntry").style.display = sec==="entry" ? "block" : "none";
-  document.getElementById("secList").style.display  = sec==="list"  ? "block" : "none";
-  if (sec==="list") {
+  document.getElementById("secEntry").style.display = sec === "entry" ? "block" : "none";
+  document.getElementById("secList").style.display  = sec === "list"  ? "block" : "none";
+  if (sec === "list") {
     document.getElementById("listDate").value = currentDate;
-    loadReservations();
+    // HotelPanelView — tarih senkronizasyonu
+    if (typeof HotelPanelView !== "undefined") HotelPanelView.changeDate(currentDate);
   }
 }
 
+// ── Tarih yönetimi ────────────────────────────────────────────
+let currentDate = todayStr();
+document.getElementById("entryDate").value = currentDate;
+document.getElementById("entryTime").value = "10:30";
+document.getElementById("listDate").value  = currentDate;
+document.getElementById("entryNation").innerHTML = nationOptions("RUS");
+
 function onDateChange() {
   currentDate = document.getElementById("listDate").value;
-  loadReservations();
+  if (typeof HotelPanelView !== "undefined") HotelPanelView.changeDate(currentDate);
 }
 
 function changeDay(n, reset) {
   currentDate = reset ? todayStr() : addDays(currentDate, n);
   document.getElementById("listDate").value = currentDate;
-  loadReservations();
+  if (typeof HotelPanelView !== "undefined") HotelPanelView.changeDate(currentDate);
 }
 
+// ── Form sıfırlama ────────────────────────────────────────────
 function resetForm() {
-  document.getElementById("editingId").value = "";
+  document.getElementById("editingId").value  = "";
   document.getElementById("formTitle").innerText = "✏️ Yeni Rezervasyon";
-  document.getElementById("saveBtn").innerText = "💾 KAYDET";
-  document.getElementById("entryDate").value   = todayStr();
-  document.getElementById("entryTime").value   = "10:30";
-  document.getElementById("entryAdult").value  = 2;
-  document.getElementById("entryChild").value  = 0;
-  document.getElementById("entryNation").value = "RUS";
-  document.getElementById("entryNotes").value  = "";
+  document.getElementById("saveBtn").innerText   = "💾 KAYDET";
+  document.getElementById("entryDate").value     = todayStr();
+  document.getElementById("entryTime").value     = "10:30";
+  document.getElementById("entryAdult").value    = 2;
+  document.getElementById("entryChild").value    = 0;
+  document.getElementById("entryNation").value   = "RUS";
+  document.getElementById("entryNotes").value    = "";
 }
 
+// ── Rezervasyon kaydet (Firebase API doğrudan) ─────────────────
 async function saveReservation() {
-  if (!checkApiConfig()) return showToast("Firebase ayarı bulunamadı","err");
-  const date = document.getElementById("entryDate").value;
-  const time = document.getElementById("entryTime").value;
-  if (!date||!time) return showToast("Tarih ve saat zorunlu","err");
+  if (!checkApiConfig()) return showToast("Firebase ayarı bulunamadı", "err");
+  const date  = document.getElementById("entryDate").value;
+  const time  = document.getElementById("entryTime").value;
+  if (!date || !time) return showToast("Tarih ve saat zorunlu", "err");
   const id = document.getElementById("editingId").value;
-  const body = { id, date, time, hotel,
+  const body = sanitizeRez({
+    id, date, time, hotel: _hotelName,
     adult:  document.getElementById("entryAdult").value,
     child:  document.getElementById("entryChild").value,
     nation: document.getElementById("entryNation").value,
     notes:  document.getElementById("entryNotes").value,
     status: "PENDING"
-  };
-  const r = id
-    ? await apiPost("updateReservation", body)
-    : await apiPost("addReservation",    body);
-  if (r.success) {
-    showToast(id ? "✅ Rezervasyon güncellendi" : "✅ Rezervasyon kaydedildi");
+  });
+  try {
+    if (id) {
+      await updateReservation(date, id, body);
+      showToast("✅ Rezervasyon güncellendi");
+    } else {
+      await addReservation(body);
+      showToast("✅ Rezervasyon kaydedildi");
+    }
     currentDate = date;
     resetForm();
     showSec("list");
-  } else {
-    showToast("❌ "+(r.message||"Hata"),"err");
+  } catch(e) {
+    showToast("❌ " + (e.message || "Hata"), "err");
+    if (typeof reportClientError === "function") reportClientError("hotel:saveReservation", e);
   }
 }
 
-async function loadReservations() {
-  document.getElementById("reservationList").innerHTML =
-    '<div style="text-align:center;color:var(--text2);padding:16px">Yükleniyor...</div>';
-  const data = await apiGet("getReservations", { date: currentDate, hotel });
-  const list = Array.isArray(data) ? data : [];
-  renderList(list);
-}
-
-function renderList(list) {
-  hotelReservationCache = Array.isArray(list) ? list : [];
-  const total  = list.length;
-  const active = list.filter(r => r.status!=="CANCELLED").length;
-  const pax    = list.reduce((s,r) => s+(Number(r.adult)||0)+(Number(r.child)||0),0);
-  const inside = list.filter(r => String(r.girdi).toUpperCase()==="TRUE" && String(r.cikti).toUpperCase()!=="TRUE").length;
-  const done   = list.filter(r => String(r.cikti).toUpperCase()==="TRUE").length;
-
-  document.getElementById("listSummary").innerHTML = `
-    <span class="badge updated">${active} rezervasyon</span>
-    <span class="badge pending">${pax} kişi</span>
-    ${inside?`<span class="badge entered">${inside} içeride`+`</span>`:""}
-    ${done  ?`<span class="badge exited">${done} tamamlandı`+`</span>`:""}
-  `;
-
-  if (!list.length) {
-    document.getElementById("reservationList").innerHTML =
-      `<div style="text-align:center;color:var(--text2);padding:28px">
-        <div style="font-size:32px;margin-bottom:8px">📭</div>
-        ${currentDate} tarihinde rezervasyon bulunamadı.
-      </div>`;
-    return;
-  }
-
-  document.getElementById("reservationList").innerHTML = list.map(r => {
-    const pax2 = (Number(r.adult)||0)+(Number(r.child)||0);
-    const exited    = String(r.cikti).toUpperCase()==="TRUE";
-    const inside2   = String(r.girdi).toUpperCase()==="TRUE" && !exited;
-    const cancelled = r.status==="CANCELLED";
-    const hasCenterOperation = inside2 || exited || String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" || [r.staff1,r.staff2,r.staff3,r.staff4,r.ayak,r.plaka,r.kart].some(Boolean);
-    const canEdit   = !cancelled && !hasCenterOperation;
-    const canCancel = !cancelled && !hasCenterOperation;
-    const canDelete = !cancelled && !hasCenterOperation;
-
-    let statusEl;
-    if (exited)    statusEl='<span class="badge exited">✅ TAMAMLANDI</span>';
-    else if (inside2)   statusEl='<span class="badge entered">🟠 İÇERİDE</span>';
-    else if (cancelled) statusEl='<span class="badge cancelled">❌ İPTAL</span>';
-    else                statusEl='<span class="badge pending">⏳ BEKLİYOR</span>';
-
-    return `
-      <div class="res-card" style="border-left:4px solid ${exited?'#35d979':inside2?'#f59e0b':cancelled?'#555':'#3a3f5c'};${cancelled?"opacity:.55":""}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="res-time">${r.time}</div>
-            <div style="font-size:11px;color:var(--text2)">${r.date}</div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            ${statusEl}
-            ${String(r.satis).toUpperCase()==='TRUE' && String(r.cikti).toUpperCase()==='TRUE' ? '<span style="background:rgba(96,165,250,.2);border:1px solid rgba(96,165,250,.5);color:#93c5fd;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;">SATIŞ</span>' : String(r.cikti).toUpperCase()==='TRUE' ? '<span style="color:#f87171;font-size:12px;font-weight:800;">BOŞ</span>' : ''}
-          </div>
-        </div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px">
-          👤 ${pax2} kişi
-          ${Number(r.child)>0?`<span style="font-size:12px;font-weight:400;color:var(--text2);margin-left:6px">(${r.adult} yet. / ${r.child} çoc.)</span>`:''}
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-          <span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">🌍 ${r.nation||'—'}</span>
-          ${r.kart?`<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">💳 ${r.kart}</span>`:''}
-          ${r.ayak?`<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">🚗 ${r.ayak}</span>`:''}
-        </div>
-        ${r.notes?`<div class="res-detail" style="font-style:italic;margin-bottom:8px">📝 ${r.notes}</div>`:''}
-        <div class="res-actions">
-          ${canEdit   ? `<button class="btn-blue btn-sm" onclick='editRes(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✏️ Düzelt</button>` : ""}
-          ${canCancel ? `<button class="btn-red  btn-sm" onclick="cancelRes('${r.id}')">❌ İptal</button>` : ""}
-          ${canDelete ? `<button class="btn-red btn-sm" style="background:rgba(80,0,0,.9)" onclick="deleteRes('${r.id}')">🗑 Sil</button>` : `<span class="badge entered">🔒 Merkez işlem yaptı</span>`}
-        </div>
-      </div>`;
-  }).join("");
-}
-
-function editRes(r) {
+// ── editRes — HotelReservationCard'dan çağrılır ───────────────
+window.editRes = function(r) {
   document.getElementById("editingId").value   = r.id;
   document.getElementById("formTitle").innerText = "✏️ Rezervasyon Düzelt";
   document.getElementById("saveBtn").innerText   = "💾 GÜNCELLE";
   document.getElementById("entryDate").value     = r.date;
   document.getElementById("entryTime").value     = r.time;
-  document.getElementById("entryAdult").value    = r.adult||2;
-  document.getElementById("entryChild").value    = r.child||0;
-  document.getElementById("entryNation").value   = r.nation||"RUS";
-  document.getElementById("entryNotes").value    = r.notes||"";
+  document.getElementById("entryAdult").value    = r.adult || 2;
+  document.getElementById("entryChild").value    = r.child || 0;
+  document.getElementById("entryNation").value   = r.nation || "RUS";
+  document.getElementById("entryNotes").value    = r.notes || "";
   showSec("entry");
-}
+};
 
-async function cancelRes(id) {
+// ── cancelRes / deleteRes — HotelReservationCard'dan çağrılır ─
+window.cancelRes = async function(id) {
   if (!confirm("Bu rezervasyon iptal edilsin mi?")) return;
-  const r = await apiGet("cancelReservation",{id});
-  if (r.success) { showToast("Rezervasyon iptal edildi"); loadReservations(); }
-  else showToast("İptal başarısız","err");
-}
+  try {
+    await updateReservation(currentDate, id, { status: "CANCELLED" });
+    showToast("Rezervasyon iptal edildi");
+  } catch(e) {
+    showToast("İptal başarısız", "err");
+    if (typeof reportClientError === "function") reportClientError("hotel:cancelRes", e);
+  }
+};
 
-async function deleteRes(id) {
-  const res = hotelReservationCache.find(x => String(x.id) === String(id));
-  const hasCenterOperation = res && (String(res.girdi).toUpperCase()==="TRUE" || String(res.cikti).toUpperCase()==="TRUE" || [res.staff1,res.staff2,res.staff3,res.staff4,res.plaka,res.kart].some(Boolean));
-  if (hasCenterOperation) return showToast("Merkez işlem yaptı. Otel bu rezervasyonu silemez.", "err");
+window.deleteRes = async function(id) {
   if (!confirm("Bu rezervasyon tamamen silinsin mi? Bu işlem geri alınamaz.")) return;
-  const r = await apiGet("deleteReservation",{id});
-  if (r.success) { showToast("Rezervasyon silindi"); loadReservations(); }
-  else showToast("Silme başarısız","err");
-}
+  try {
+    await deleteReservation(currentDate, id);
+    showToast("Rezervasyon silindi");
+  } catch(e) {
+    showToast("Silme başarısız", "err");
+    if (typeof reportClientError === "function") reportClientError("hotel:deleteRes", e);
+  }
+};
 
-// Init
-showSec("entry");
+// ── HotelPanelView başlat ─────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof HotelPanelView !== "undefined") {
+    HotelPanelView.init(_hotelName, currentDate);
+  }
 
-// Otel paneli otomatik yenileme: 10 saniye
-setInterval(() => {
-  if (!document.hidden) loadReservations();
-}, 10000);
+  // Mesajlaşma
+  if (typeof initMessaging === "function" && _hotelName) {
+    initMessaging("otel", _hotelName, _hotelName);
+  }
+});
 </script>
 
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('../sw.js', { scope: '../' })
-      .catch(e => console.log('SW error:', e));
-  });
-}
-</script>
+<script src="../assets/messaging.js"></script>
+<script src="../assets/theme-manager.js"></script>
 </body>
 </html>

@@ -26,6 +26,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;mar
   <meta name="apple-mobile-web-app-title" content="Piano Deri">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}</script>
+  <link rel="stylesheet" href="../assets/theme-overrides.css">
 </head>
 <body>
 <div class="login-wrap">
@@ -105,5 +106,6 @@ async function doLogin() {
   loadEl.style.display = 'none';
 }
 </script>
+<script src="../assets/theme-manager.js"></script>
 </body>
 </html>
