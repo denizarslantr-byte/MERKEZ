@@ -244,13 +244,30 @@ async function getReservations(date) {
   const cached = cacheGet(cacheKey);
   if (cached) return cached;
 
+  // Önce aktif yolda ara
   const data = await fbGet("rezervasyonlar/" + date);
   let list = [];
   if (data) {
     list = Object.entries(data)
       .map(([key, val]) => ({ ...val, _key: key }))
       .sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    cacheSet(cacheKey, list);
+    return list;
   }
+
+  // Aktif yolda bulunamadıysa arşivde ara (eski tarihlerin arşive taşınmış olması durumu)
+  const today = new Date().toISOString().slice(0,10);
+  if (date < today) {
+    const month = date.slice(0,7);
+    const archData = await fbGet("arsiv/" + month);
+    if (archData) {
+      list = Object.entries(archData)
+        .filter(([, v]) => v.date === date)
+        .map(([key, val]) => ({ ...val, _key: key }))
+        .sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    }
+  }
+
   cacheSet(cacheKey, list);
   return list;
 }
