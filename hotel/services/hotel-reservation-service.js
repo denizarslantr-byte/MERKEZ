@@ -42,15 +42,17 @@ const HotelReservationService = (() => {
   }
 
   // Rezervasyon durumunu güncelle
+  // Düzeltildi: updateReservation(id, data) — 2 parametre imzası
   async function updateStatus(date, id, status) {
     if (typeof updateReservation !== "function") throw new Error("updateReservation bulunamadı");
-    return await updateReservation(date, id, { status });
+    return await updateReservation(id, { date, status });
   }
 
   // Çıkış saatini kaydet
+  // Düzeltildi: updateReservation(id, data) — 2 parametre imzası
   async function updateCheckout(date, id, ciktiSaati) {
     if (typeof updateReservation !== "function") throw new Error("updateReservation bulunamadı");
-    return await updateReservation(date, id, { ciktiSaati });
+    return await updateReservation(id, { date, ciktiSaati });
   }
 
   return { subscribeForHotel, updateStatus, updateCheckout };
