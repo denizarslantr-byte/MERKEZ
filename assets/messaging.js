@@ -363,25 +363,44 @@
     if (btnEl) { btnEl.disabled = false; btnEl.textContent = "MESAJ GÖNDER"; }
   };
 
-  // ── Bildirim sesi (Web Audio API — harici dosya gerektirmez) ──
+  // ── AudioContext — tarayıcı kısıtlaması: ilk kullanıcı ────
+  // tıklamasından sonra oluşturulmalı, global tutulur
+  let _audioCtx = null;
+  function _initAudio() {
+    if (_audioCtx) return;
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  // Herhangi bir tıklamada AudioContext'i hazırla
+  document.addEventListener("click", _initAudio, { once: true });
+
+  // ── Bildirim sesi ─────────────────────────────────────────
   function _playNotifSound() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [[880, 0, 0.35], [1100, 0.18, 0.35]].forEach(([freq, delay, dur]) => {
-        const osc  = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        const t = ctx.currentTime + delay;
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.28, t + 0.025);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-        osc.start(t);
-        osc.stop(t + dur);
-      });
-    } catch(e) { /* ses desteklenmiyor */ }
+    _initAudio();
+    if (!_audioCtx) return;
+    const doPlay = () => {
+      try {
+        [[880, 0, 0.32], [1100, 0.17, 0.32]].forEach(([freq, delay, dur]) => {
+          const osc  = _audioCtx.createOscillator();
+          const gain = _audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(_audioCtx.destination);
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          const t = _audioCtx.currentTime + delay;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.3, t + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+          osc.start(t);
+          osc.stop(t + dur);
+        });
+      } catch(e) {}
+    };
+    // Suspended ise önce resume et
+    if (_audioCtx.state === "suspended") {
+      _audioCtx.resume().then(doPlay).catch(() => {});
+    } else {
+      doPlay();
+    }
   }
 
   // ── Animasyonlu bildirim popup'ı ─────────────────────────
@@ -404,14 +423,12 @@
       const panel = document.getElementById("__msgPanel__");
       if (panel) {
         panel.classList.add("open");
-        // Gelen sekmesine geç
         const gelenTab = document.querySelector("[data-tab='gelen']");
         if (gelenTab) gelenTab.click();
       }
     };
     document.body.appendChild(el);
 
-    // 5 saniye sonra otomatik kapat
     setTimeout(() => {
       if (!el.parentNode) return;
       el.classList.add("hide");
@@ -419,42 +436,75 @@
     }, 5000);
   }
 
-  // ── Mesaj butonu sallama animasyonu ──────────────────────
+  // ── Buton sallama animasyonu ──────────────────────────────
   function _shakeBtn() {
     const btn = document.getElementById("__msgBtn__");
     if (!btn) return;
     btn.style.animation = "none";
-    void btn.offsetWidth; // reflow
+    void btn.offsetWidth; // reflow tetikle
     btn.style.animation = "__msg_shake__ .6s ease 2, __msg_pulse__ 1.5s ease 3";
     setTimeout(() => { if (btn) btn.style.animation = ""; }, 5000);
   }
 
-  // ── Okunmamış sayacı ─────────────────────────────────────
+  // ── Badge güncelle + bildirim tetikle ────────────────────
+  function _handleCount(count) {
+    const badge = document.getElementById("__msgBadge__");
+    if (!badge) return;
+    if (_prevUnreadCount >= 0 && count > _prevUnreadCount) {
+      _playNotifSound();
+      _showNotifPopup(count);
+      _shakeBtn();
+    }
+    _prevUnreadCount = count;
+    badge.textContent = count > 99 ? "99+" : count;
+    badge.style.display = count > 0 ? "block" : "none";
+  }
+
+  // ── Okunmamışları mesaj listesinden say (listenPath verisi) ──
+  function _countFromData(data) {
+    if (!data || !_role) return 0;
+    const all = Object.values(data);
+    if (_role === "merkez" || _role === "admin") {
+      return all.filter(m => m.toRole === _role && !m.okundu).length;
+    }
+    if (_role === "otel") {
+      const me = "otel:" + _identity;
+      return all.filter(m =>
+        !m.okundu && m.toRole === "otel" &&
+        (m.to === "all" || m.to === me)
+      ).length;
+    }
+    return 0;
+  }
+
+  // ── Realtime listener (Firebase onValue) + fallback poll ─
   function _startUnreadPoll() {
-    _updateBadge();
-    _unreadInterval = setInterval(_updateBadge, 30000);
+    // İlk yükleme: mevcut sayıyı sessizce oku (bildirim tetikleme)
+    getUnreadCount(_role, _identity)
+      .then(c => { _prevUnreadCount = c; _handleCount(c); })
+      .catch(() => {});
+
+    // Firebase realtime — mesajlar değişince anında tetikle
+    if (typeof listenPath === "function") {
+      listenPath("mesajlar", (data) => {
+        const count = _countFromData(data || {});
+        _handleCount(count);
+      });
+    }
+
+    // Fallback: 15 saniyede bir (listenPath başarısız olursa)
+    _unreadInterval = setInterval(async () => {
+      try {
+        const c = await getUnreadCount(_role, _identity);
+        _handleCount(c);
+      } catch(e) {}
+    }, 15000);
   }
 
   async function _updateBadge() {
     try {
       const count = await getUnreadCount(_role, _identity);
-      const badge = document.getElementById("__msgBadge__");
-      if (!badge) return;
-
-      // Yeni mesaj var mı? (ilk yüklemede tetikleme — _prevUnreadCount === -1)
-      if (_prevUnreadCount >= 0 && count > _prevUnreadCount) {
-        _playNotifSound();
-        _showNotifPopup(count);
-        _shakeBtn();
-      }
-      _prevUnreadCount = count;
-
-      if (count > 0) {
-        badge.textContent = count > 99 ? "99+" : count;
-        badge.style.display = "block";
-      } else {
-        badge.style.display = "none";
-      }
+      _handleCount(count);
     } catch(e) {
       if (typeof reportClientError === "function") reportClientError("messaging:badge", e);
     }
