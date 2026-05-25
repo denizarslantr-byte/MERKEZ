@@ -93,12 +93,13 @@ const HotelReservationCard = (() => {
       </div>`;
   }
 
-  // Callback bridge — HTML onclick'ten global callback'e köprü
-  HotelReservationCard._edit   = (r)  => window.editRes   && window.editRes(r);
-  HotelReservationCard._cancel = (id) => window.cancelRes && window.cancelRes(id);
-  HotelReservationCard._delete = (id) => window.deleteRes && window.deleteRes(id);
-
   return { renderList };
 })();
+
+// Callback bridge — HTML onclick'ten global callback'e köprü
+// (IIFE dışında olmalı: const TDZ hatası önlemek için)
+HotelReservationCard._edit   = (r)  => window.editRes   && window.editRes(r);
+HotelReservationCard._cancel = (id) => window.cancelRes && window.cancelRes(id);
+HotelReservationCard._delete = (id) => window.deleteRes && window.deleteRes(id);
 
 window.HotelReservationCard = HotelReservationCard;
