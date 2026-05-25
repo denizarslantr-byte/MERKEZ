@@ -1,28 +1,23 @@
 // hotel/services/hotel-reservation-service.js
-// Otel Paneli — Rezervasyon Servis Katmanı
-// listenReservations() otel adına göre filtreler ve realtime callback sağlar.
-
 "use strict";
 
 const HotelReservationService = (() => {
 
-  // Otel adına göre filtrelenmiş realtime listener.
-  // Dönüş: unsub() fonksiyonu
   function subscribeForHotel(date, hotelName, onData) {
-    if (typeof listenReservations !== "function") {
-      console.error("HotelReservationService: listenReservations bulunamadı");
-      // Fallback: tek seferlik yükleme
-      if (typeof getReservations === "function") {
-        getReservations(date).then(rows => {
-          const filtered = (rows || []).filter(r =>
+
+    function _oneTimeLoad() {
+      if (typeof getReservations !== "function") { onData([]); return; }
+      getReservations(date)
+        .then(rows => {
+          onData((rows || []).filter(r =>
             r.hotel && r.hotel.toLowerCase() === (hotelName||"").toLowerCase()
-          );
-          onData(filtered);
-        }).catch(err => {
-          if (typeof reportClientError === "function")
-            reportClientError("HotelReservationService:fallback", err);
-        });
-      }
+          ));
+        })
+        .catch(() => onData([]));
+    }
+
+    if (typeof listenReservations !== "function") {
+      _oneTimeLoad();
       return () => {};
     }
 
@@ -31,25 +26,30 @@ const HotelReservationService = (() => {
       const filtered = (allRows || []).filter(r =>
         r.hotel && r.hotel.toLowerCase() === (hotelName||"").toLowerCase()
       );
-      onData(filtered);
-    }).then(u => { unsub = u; })
-      .catch(err => {
-        if (typeof reportClientError === "function")
-          reportClientError("HotelReservationService:subscribe", err);
-      });
+
+      // Realtime boş döndü + geçmiş tarih → arsiv'de olabilir, getReservations dene
+      const today = new Date().toISOString().slice(0, 10);
+      if (filtered.length === 0 && date < today) {
+        _oneTimeLoad();
+      } else {
+        onData(filtered);
+      }
+    })
+    .then(u => { unsub = u; })
+    .catch(() => {
+      // Realtime başarısız → tek seferlik yükleme
+      _oneTimeLoad();
+    });
 
     return () => { if (typeof unsub === "function") unsub(); };
   }
 
-  // Rezervasyon durumunu güncelle
   // Düzeltildi: updateReservation(id, data) — 2 parametre imzası
   async function updateStatus(date, id, status) {
     if (typeof updateReservation !== "function") throw new Error("updateReservation bulunamadı");
     return await updateReservation(id, { date, status });
   }
 
-  // Çıkış saatini kaydet
-  // Düzeltildi: updateReservation(id, data) — 2 parametre imzası
   async function updateCheckout(date, id, ciktiSaati) {
     if (typeof updateReservation !== "function") throw new Error("updateReservation bulunamadı");
     return await updateReservation(id, { date, ciktiSaati });
