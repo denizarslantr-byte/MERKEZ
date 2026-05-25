@@ -632,6 +632,10 @@ async function markMessageRead(id) {
   await fbUpdate("mesajlar/" + id, { okundu: true });
 }
 
+async function deleteMessage(id) {
+  await fbRemove("mesajlar/" + id);
+}
+
 async function getUnreadCount(role, identity) {
   const { gelen } = await getMessages(role, identity);
   return gelen.filter(m => !m.okundu).length;
@@ -820,7 +824,8 @@ window.getPlakalar = getPlakalar;
 window.sendMessage = sendMessage;
 window.getMessages = getMessages;
 window.markMessageRead = markMessageRead;
-window.getUnreadCount = getUnreadCount;
+window.deleteMessage   = deleteMessage;
+window.getUnreadCount  = getUnreadCount;
 window.listenReservations = listenReservations;
 window.listenPath = listenPath;
 window._firebaseApiGet = apiGet;

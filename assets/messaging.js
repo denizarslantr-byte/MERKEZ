@@ -160,6 +160,13 @@
       .__msg_text__ { font-size:13px; color:#ccc; line-height:1.4; }
       .__msg_to_lbl__ { font-size:10px; color:#666; margin-top:4px; }
       .__msg_empty__ { text-align:center; color:#555; font-size:13px; padding:24px 0; }
+      .__msg_del_btn__ {
+        background:none; border:none; color:#555; cursor:pointer;
+        font-size:14px; padding:2px 4px; border-radius:4px;
+        transition:color .15s, background .15s; line-height:1;
+        margin-left:auto; flex-shrink:0;
+      }
+      .__msg_del_btn__:hover { color:#ef4444; background:rgba(239,68,68,.12); }
     `;
     document.head.appendChild(s);
   }
@@ -285,17 +292,41 @@
       const zaman = m.createdAt
         ? new Date(m.createdAt).toLocaleString("tr-TR",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"})
         : "";
+      const safeId = _esc(m.id || "");
       return `
-        <div class="__msg_item__ ${isUnread?"unread":""}">
+        <div class="__msg_item__ ${isUnread?"unread":""}" id="__msgItem__${safeId}">
           <div class="__msg_item_head__">
             <span class="__msg_from__">${_esc(m.from||"?")}</span>
             <span class="__msg_time__">${zaman}</span>
+            <button class="__msg_del_btn__" title="Sil" onclick="__msgDelete__('${safeId}')">🗑</button>
           </div>
           <div class="__msg_text__">${_esc(m.text||"")}</div>
           <div class="__msg_to_lbl__">→ ${_esc(m.to||"")}</div>
         </div>`;
     }).join("");
   }
+
+  // ── Mesaj sil ─────────────────────────────────────────────
+  window.__msgDelete__ = async function(id) {
+    if (!id) return;
+    if (!confirm("Bu mesaj silinsin mi?")) return;
+    try {
+      if (typeof deleteMessage === "function") {
+        await deleteMessage(id);
+      }
+      // Animasyonlu kaldır
+      const el = document.getElementById("__msgItem__" + id);
+      if (el) {
+        el.style.transition = "opacity .25s, max-height .3s";
+        el.style.overflow = "hidden";
+        el.style.opacity = "0";
+        el.style.maxHeight = "0";
+        setTimeout(() => el.remove(), 320);
+      }
+    } catch(e) {
+      alert("Silinemedi: " + (e && e.message ? e.message : "Hata"));
+    }
+  };
 
   async function _markAllRead(list) {
     const unread = list.filter(m => !m.okundu);
