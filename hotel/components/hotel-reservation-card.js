@@ -42,9 +42,8 @@ const HotelReservationCard = (() => {
     const cancelled = r.status === "CANCELLED";
     const totalPax  = (Number(r.adult)||0) + (Number(r.child)||0);
 
-    // Merkez işlem yaptıysa otel düzenleyemez.
-    // DİKKAT: "satis" sadece merkez ekranının iç operasyon bilgisidir.
-    // Otel panelinde satış görünmemeli ve tek başına "merkez işlem yaptı" sayılmamalı.
+    // Otel panelinde satış bilgisi görünmez ve tek başına kilitleme sebebi değildir.
+    // Kilitleme sadece gerçek merkez operasyonlarında olur: giriş, çıkış, personel, araç/plaka, kart.
     const hasCenterOp = inside || exited ||
       String(r.girdi).toUpperCase()==="TRUE"  ||
       String(r.cikti).toUpperCase()==="TRUE"  ||
@@ -67,7 +66,7 @@ const HotelReservationCard = (() => {
     const cancelBtn = canCancel ? `<button class="btn-red  btn-sm" onclick="HotelReservationCard._cancel('${_esc(r.id)}')">❌ İptal</button>` : "";
     const deleteBtn = canDelete
       ? `<button class="btn-red btn-sm" style="background:rgba(80,0,0,.9)" onclick="HotelReservationCard._delete('${_esc(r.id)}')">🗑 Sil</button>`
-      : `<span class="badge entered">🔒 Merkez işlem yaptı</span>`;
+      : "";
 
     return `
       <div class="res-card" style="border-left:4px solid ${borderColor};${cancelled?"opacity:.55":""}">
