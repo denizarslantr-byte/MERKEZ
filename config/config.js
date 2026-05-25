@@ -19,3 +19,4 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxCTdPJ4P89KDDYOairoh0C
 const API_KEY =
   (typeof __PIANO_API_KEY__ !== "undefined" && __PIANO_API_KEY__) ? __PIANO_API_KEY__ :
   (typeof window !== "undefined" && window.PIANO_API_KEY ? window.PIANO_API_KEY : "");
+const FIREBASE_ALLOW_ANONYMOUS_AUTH = true;
