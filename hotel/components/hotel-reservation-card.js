@@ -1,7 +1,4 @@
 // hotel/components/hotel-reservation-card.js
-// Otel paneli rezervasyon kart listesi bileşeni
-// Kullanım: HotelReservationCard.renderList(container, reservations, options)
-
 "use strict";
 
 const HotelReservationCard = (() => {
@@ -11,17 +8,15 @@ const HotelReservationCard = (() => {
       .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
   }
 
-  // options: { onEdit, onCancel, onDelete }
   function renderList(container, reservations, options = {}) {
     if (!container) return;
 
-    // Özet satırı
     const summaryEl = document.getElementById("listSummary");
     if (summaryEl) {
-      const total  = reservations.length;
+      const total    = reservations.length;
       const totalPax = reservations.reduce((s,r) => s + (Number(r.adult)||0) + (Number(r.child)||0), 0);
-      const inside = reservations.filter(r => String(r.girdi).toUpperCase()==="TRUE" && String(r.cikti).toUpperCase()!=="TRUE").length;
-      const done   = reservations.filter(r => String(r.cikti).toUpperCase()==="TRUE").length;
+      const inside   = reservations.filter(r => String(r.girdi).toUpperCase()==="TRUE" && String(r.cikti).toUpperCase()!=="TRUE").length;
+      const done     = reservations.filter(r => String(r.cikti).toUpperCase()==="TRUE").length;
       summaryEl.innerHTML =
         `<span class="badge updated">${total} rezervasyon</span>` +
         `<span class="badge pending">${totalPax} kişi</span>` +
@@ -49,19 +44,21 @@ const HotelReservationCard = (() => {
 
     // Merkez işlem yaptıysa otel düzenleyemez
     const hasCenterOp = inside || exited ||
-      String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" ||
+      String(r.girdi).toUpperCase()==="TRUE"  ||
+      String(r.cikti).toUpperCase()==="TRUE"  ||
       String(r.satis||"").toUpperCase()==="TRUE" ||
       [r.staff1,r.staff2,r.staff3,r.staff4,r.ayak,r.plaka,r.kart].some(Boolean);
+
     const canEdit   = !cancelled && !hasCenterOp;
     const canCancel = !cancelled && !hasCenterOp;
     const canDelete = !cancelled && !hasCenterOp;
 
     const borderColor = exited?"#35d979" : inside?"#f59e0b" : cancelled?"#555" : "#3a3f5c";
     let statusEl;
-    if (exited)          statusEl = '<span class="badge exited">✅ TAMAMLANDI</span>';
-    else if (inside)     statusEl = '<span class="badge entered">🟠 İÇERİDE</span>';
-    else if (cancelled)  statusEl = '<span class="badge cancelled">❌ İPTAL</span>';
-    else                 statusEl = '<span class="badge pending">⏳ BEKLİYOR</span>';
+    if (exited)         statusEl = '<span class="badge exited">✅ TAMAMLANDI</span>';
+    else if (inside)    statusEl = '<span class="badge entered">🟠 İÇERİDE</span>';
+    else if (cancelled) statusEl = '<span class="badge cancelled">❌ İPTAL</span>';
+    else                statusEl = '<span class="badge pending">⏳ BEKLİYOR</span>';
 
     const safeR = JSON.stringify(r).replace(/'/g,"&#39;");
 
@@ -95,8 +92,7 @@ const HotelReservationCard = (() => {
   return { renderList };
 })();
 
-// Callback bridge — HTML onclick'ten global callback'e köprü
-// (IIFE dışında olmalı: const TDZ hatası önlemek için)
+// Callback bridge — IIFE dışında (TDZ hatası önlemek için)
 HotelReservationCard._edit   = (r)  => window.editRes   && window.editRes(r);
 HotelReservationCard._cancel = (id) => window.cancelRes && window.cancelRes(id);
 HotelReservationCard._delete = (id) => window.deleteRes && window.deleteRes(id);
