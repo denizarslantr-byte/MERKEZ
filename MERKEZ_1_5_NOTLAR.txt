@@ -1,0 +1,82 @@
+MERKEZ 1.5 GÜNCELLEME NOTLARI
+══════════════════════════════════════════════════════════════════
+
+Temel: merkez-1.4
+
+────────────────────────────────────────────────────────────────
+A) Eksik Düzeltmeler (1.4 → 1.5)
+────────────────────────────────────────────────────────────────
+
+1. messaging.js — _withTimeout() eklendi
+   - Promise.race ile 10 saniye timeout
+   - Ağ asılı kalırsa kullanıcıya "zaman aşımına uğradı" hatası
+   - sendMessage() artık _withTimeout(sendMessage(...), 10000) ile çağrılıyor
+
+2. config/config.js — window.PIANO_API_KEY runtime fallback eklendi
+   - Öncelik: __PIANO_API_KEY__ (build-time) > window.PIANO_API_KEY (runtime) > ""
+   - CDN deploy ve lokal test senaryoları destekleniyor
+
+3. firebase-rules.json — adminPinHash + adminPin kapatma (1.4'ten taşındı)
+   - ayarlar/adminPinHash: length===64 validate
+   - ayarlar/adminPin: .read:false, .write:false
+
+────────────────────────────────────────────────────────────────
+B) Frontend Refactor — HTML Ekranları Modüllere Bağlandı
+────────────────────────────────────────────────────────────────
+
+4. manager/index.html — TAM REFACTOR
+   - setInterval(load,10000) kaldırıldı
+   - ManagerService.subscribeDate() realtime listener bağlandı
+   - ManagerUtils.esc() ile XSS koruması
+   - "● Canlı" / "⏳ Bağlanıyor..." durum göstergesi eklendi
+   - 15 satırdan 187 satıra genişledi (okunabilir, modüler)
+
+5. hotel/mobile-hotel-panel.html — TAM REFACTOR
+   - HotelReservationService.subscribeForHotel() bağlandı
+   - HotelReservationCard.renderList() bileşeni aktif
+   - HotelPanelView.init() + changeDate() entegrasyonu
+   - editRes / cancelRes / deleteRes window.* callback köprüsü
+   - Firebase CRUD (addReservation, updateReservation, deleteReservation) doğrudan
+   - sanitizeRez() ile tüm form alanları temizleniyor
+
+6. admin/index.html — AUTH REFACTOR
+   - Eski: adminAuth() doğrudan çağrı
+   - Yeni: AuthService.login() / logout() / isLoggedIn()
+   - Script loading: auth-service.js, admin-data-service.js, modal.js, admin-utils.js eklendi
+   - Messaging (initMessaging("admin",...)) eklendi
+   - Version query string temizlendi
+
+7. center/dashboard.html — REALTIME REFACTOR
+   - Script loading: 7 modül script tag eklendi
+     date-utils.js, format-utils.js, toast.js, reservation-table.js,
+     hotel-service.js, reservation-service.js, dashboard-view.js
+   - startReservationRealtime() → ReservationService.subscribe() ile çalışıyor
+   - Fallback: listenReservations() direkt (ReservationService yüklenemezse)
+   - Version query string temizlendi
+
+────────────────────────────────────────────────────────────────
+C) Servis / Komponent Güncellemeleri
+────────────────────────────────────────────────────────────────
+
+8. HotelReservationCard — tam edit/cancel/delete desteği
+   - hasCenterOp kontrolü (merkez işlem yapıldıysa kilit ikonu)
+   - _edit / _cancel / _delete köprü methodları
+
+9. HotelPanelView — edit/cancel/delete callback wiring
+10. HotelReservationService — fallback (getReservations tek seferlik)
+11. AuthService — adminAuth() + verifyPin() ikili uyumluluk
+12. ReservationService — getByDate() eklendi, subscribe unsub pattern düzeltildi
+
+────────────────────────────────────────────────────────────────
+D) Korunan merkez-1.4 Özellikleri
+────────────────────────────────────────────────────────────────
+
+- adminPinHash SHA-256 sistemi + 3-format migration
+- window._fbAuth global
+- listenReservations() realtime tüm ekranlar
+- backupToday() + cleanupOldBackups(7)
+- validateReservation() + cleanReservationPatch()
+- 20 tema + theme-manager.js
+- reportClientError() + global hata dinleyicisi
+- messaging.js 3× retry + _esc() XSS
+- .gitignore + firebase.js.example

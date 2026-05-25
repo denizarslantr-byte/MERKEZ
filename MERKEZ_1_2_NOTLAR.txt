@@ -1,0 +1,19 @@
+MERKEZ 1.2 GÜNCELLEME NOTLARI
+
+Temel: merkez-1.1
+V10'dan alınanlar:
+1. Gelişmiş README_SECURITY.md içeriği eklendi.
+2. V10 production auth Firebase rules yapısı eklendi.
+3. common.js içine V10 sanitizeText/sanitizeDate/sanitizeTime/sanitizeNum/sanitizeRez yardımcıları eklendi.
+4. addReservation içinde sanitizeRez + mevcut validateReservation birlikte çalışacak şekilde düzenlendi.
+5. Rezervasyon create/delete işlemlerine auditLog desteği eklendi.
+6. Global JS error / promise rejection loglama eklendi.
+
+Korunan merkez-1.1 özellikleri:
+- validateReservation / validateMessage / validateHotel / validateStaff
+- backupToday() günlük yedekleme
+- cleanupOldBackups(7) 7 günlük temizlik
+- theme-manager.js alias uyumluluğu
+- theme-v8-reference.js
+- firebase-rules-auth-v8-compatible.json
+- Tema görselleri ve global tema sistemi

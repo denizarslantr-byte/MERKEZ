@@ -1,0 +1,16 @@
+MERKEZ 1.1 - V9 AKTARIM NOTLARI
+
+Temel: merkez-1.0
+Aktarılanlar:
+1. V9 backupToday() günlük yedekleme sistemi eklendi.
+2. Son 7 günlük yedek saklama / eski yedek temizleme mantığı eklendi.
+3. assets/theme.js dosyası V9 sade tema renk referansı olarak eklendi.
+4. Firebase rules kapalı auth != null mantığına geçirildi.
+5. merkez-1.0 içindeki validasyon, hata loglama, theme-manager ve tema görselleri korundu.
+
+Önemli:
+- Kapalı Firebase rules ile çalışmak için Firebase Authentication açık olmalı.
+- assets/firebase-api.js anonim Firebase Auth girişini denediği için rules auth != null modunda çalışabilir.
+- backup verileri yedek/YYYY-MM-DD yoluna yazılır.
+- Her gün ilk sayfa yüklemesinden yaklaşık 5 saniye sonra otomatik backup denenir.
+- Manuel çalıştırma: tarayıcı konsolunda backupToday()

@@ -1,0 +1,23 @@
+MERKEZ 1.0 - V7.2 + V8 Birleştirme Notları
+
+Ana temel: MERKEZ-v7.2-tema-sistemi.zip
+
+V8'den alınanlar:
+1. Anonim Firebase Auth desteği firebase-api.js içine eklendi.
+2. V8'in auth != null güvenlik fikri ayrı production rules dosyasına eklendi.
+3. V8'in sade tema anahtarı mantığı V7.2 tema sistemine uyumlu hale getirildi.
+4. V8'in ayarlar/tema kayıt yolu için geriye dönük uyumluluk eklendi.
+5. V8 tema referans dosyası assets/theme-v8-reference.js olarak korundu.
+6. Tema seçimi artık hem system/theme hem ayarlar/tema alanına yazılır.
+
+Korunanlar:
+1. V7.2'nin görselli 20 tema sistemi.
+2. Admin panelindeki bağımsız Tema sekmesi.
+3. assets/theme-manager.js ana tema yöneticisi.
+4. assets/theme-overrides.css global tema uyum katmanı.
+5. V7.2 güvenlik/validasyon/loglama geliştirmeleri.
+6. Sistemi bozmamak için varsayılan firebase-rules.json çalışma uyumlu bırakıldı.
+
+Production kullanımı:
+- Firebase Authentication etkinleştirildikten sonra config/firebase-rules-auth-v8-compatible.json rules olarak kullanılabilir.
+- Auth etkin değilken bu dosyayı doğrudan yayınlamak sistemin veri okuyup yazmasını engelleyebilir.

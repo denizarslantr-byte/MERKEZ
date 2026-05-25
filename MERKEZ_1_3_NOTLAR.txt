@@ -1,0 +1,18 @@
+MERKEZ 1.3 GÜNCELLEME NOTLARI
+
+Ana temel: merkez-1.2
+
+Eklenen / korunan geliştirmeler:
+1. MERKEZ-V10 canlı veri dinleme yaklaşımı merkez, otel, bölgeci, region, boss ve patron ekranlarına bağlandı.
+2. Eski setInterval polling akışları mümkün olan ekranlarda listenReservations() realtime akışına çevrildi.
+3. Firebase kurallarındaki kullanicilar .indexOn yapısı merkez-1.2 içinde korundu.
+4. Geniş sanitizeRez() alan temizliği korundu: notes, note, nation, nat, staff1-4, plaka, kart, status, date, time, adult, child.
+5. cleanupOldBackups(7) korundu.
+6. Firebase anonim giriş varsayılan olarak kapatıldı.
+7. Firebase Email/Password Auth desteği eklendi.
+8. Admin PIN hash saklama eklendi.
+9. PIN localStorage üzerinde düz metin hatırlama kapatıldı.
+10. Hardcoded API_KEY kaldırıldı; window.PIANO_API_KEY ile dışarıdan verilmesi önerildi.
+
+Üretim notu:
+Firebase rules auth != null olduğunda kullanıcıların Firebase Authentication üzerinden giriş yapması gerekir.

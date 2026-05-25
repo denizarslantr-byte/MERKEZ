@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Piano Deri — Veri Aktarım Aracı</title>
+<style>
+  body { background:#0a0a0a; color:#e5e5e5; font-family:monospace; padding:32px; max-width:760px; margin:0 auto; }
+  h1 { color:#d6a63f; margin-bottom:8px; }
+  .log { background:#111; border:1px solid #333; border-radius:8px; padding:16px; height:300px; overflow-y:auto; font-size:12px; line-height:1.7; margin:16px 0; }
+  .log .ok  { color:#22c55e; }
+  .log .err { color:#ef4444; }
+  .log .info{ color:#7dd3fc; }
+  button { background:#d6a63f; border:none; color:#111; padding:10px 24px; border-radius:6px; font-weight:700; cursor:pointer; font-size:14px; margin-right:8px; margin-bottom:8px; }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  input[type=text] { background:#111; border:1px solid #444; color:#e5e5e5; padding:8px 12px; border-radius:6px; width:100%; font-size:13px; margin:4px 0 12px 0; }
+  label { font-size:12px; color:#888; }
+  .warn { background:#1a0a00; border:1px solid #5a2a00; border-radius:8px; padding:12px; color:#fbbf24; font-size:13px; margin-bottom:16px; }
+  .step { background:#111; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:12px; }
+  .step h3 { color:#d6a63f; margin:0 0 8px 0; font-size:14px; }
+</style>
+</head>
+<body>
+<h1>🔄 Piano Deri — Veri Aktarım Aracı</h1>
+<p style="color:#888;font-size:13px">ESKİ Firebase → YENİ Firebase aktarımı (yeni yapı: rezervasyonlar/{YYYY-MM-DD}/{id})</p>
+
+<div class="warn">
+  ⚠️ Bu araç sadece YENİ Firebase projesini kurarken kullanılır.
+  Eski veritabanı <b>değiştirilmez</b> — sadece yeni veritabanına kopyalama yapılır.
+</div>
+
+<div class="step">
+  <h3>Adım 1 — Eski Firebase URL</h3>
+  <label>Eski databaseURL (mevcut proje)</label>
+  <input type="text" id="oldUrl" value="https://rezervasyon-3f1b7-default-rtdb.europe-west1.firebasedatabase.app" />
+</div>
+
+<div class="step">
+  <h3>Adım 2 — Yeni Firebase URL</h3>
+  <label>Yeni databaseURL (yeni proje)</label>
+  <input type="text" id="newUrl" value="https://pianoderi-95ec2-default-rtdb.europe-west1.firebasedatabase.app" />
+</div>
+
+<div style="margin-bottom:12px">
+  <button onclick="startMigration()" id="btnMig">🚀 Aktarımı Başlat</button>
+  <button onclick="clearLog()">🗑 Logu Temizle</button>
+</div>
+
+<div class="log" id="logEl"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+window.clearLog = () => { document.getElementById("logEl").innerHTML = ""; };
+
+function log(msg, type="info") {
+  const el = document.getElementById("logEl");
+  const line = document.createElement("div");
+  line.className = type;
+  line.textContent = new Date().toLocaleTimeString("tr-TR") + " — " + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+window.startMigration = async function() {
+  const oldUrl = document.getElementById("oldUrl").value.trim();
+  const newUrl = document.getElementById("newUrl").value.trim();
+  if (!oldUrl || !newUrl) { alert("Her iki URL de gerekli!"); return; }
+  if (oldUrl === newUrl) { alert("Eski ve yeni URL aynı olamaz!"); return; }
+
+  const btn = document.getElementById("btnMig");
+  btn.disabled = true;
+
+  try {
+    log("Eski Firebase'e bağlanılıyor...");
+    const oldApp = initializeApp({ databaseURL: oldUrl }, "oldApp");
+    const oldDb = getDatabase(oldApp);
+
+    log("Yeni Firebase'e bağlanılıyor...");
+    const newApp = initializeApp({ databaseURL: newUrl }, "newApp");
+    const newDb = getDatabase(newApp);
+
+    // ── Rezervasyonlar ──
+    log("Rezervasyonlar okunuyor...");
+    const rezSnap = await get(ref(oldDb, "rezervasyonlar"));
+    const rezData = rezSnap.exists() ? rezSnap.val() : {};
+
+    // Eski yapı: rezervasyonlar/{id} = {date, ...}
+    // Yeni yapı: rezervasyonlar/{date}/{id} = {date, ...}
+    const byDate = {};
+    let rezCount = 0;
+    for (const [id, rez] of Object.entries(rezData)) {
+      const date = rez.date;
+      if (!date) { log(`  ⚠ ID ${id} tarih yok, atlandı`, "err"); continue; }
+      if (!byDate[date]) byDate[date] = {};
+      byDate[date][id] = rez;
+      rezCount++;
+    }
+
+    log(`${rezCount} rezervasyon ${Object.keys(byDate).length} tarihe gruplandı...`);
+
+    for (const [date, recs] of Object.entries(byDate)) {
+      await set(ref(newDb, "rezervasyonlar/" + date), recs);
+      log(`  ✅ ${date}: ${Object.keys(recs).length} rezervasyon aktarıldı`, "ok");
+    }
+
+    // ── Diğer koleksiyonlar ──
+    const cols = ["oteller","personel","kullanicilar","plakalar","izinler","logs","ayarlar"];
+    for (const col of cols) {
+      log(`${col} okunuyor...`);
+      const snap = await get(ref(oldDb, col));
+      if (snap.exists()) {
+        await set(ref(newDb, col), snap.val());
+        const count = typeof snap.val() === "object" ? Object.keys(snap.val()).length : 1;
+        log(`  ✅ ${col}: ${count} kayıt aktarıldı`, "ok");
+      } else {
+        log(`  ℹ ${col}: veri yok`, "info");
+      }
+    }
+
+    log("🎉 AKTARIM TAMAMLANDI!", "ok");
+    log("Şimdi config/firebase.js dosyasında databaseURL'i yeni URL ile değiştirin.", "ok");
+
+  } catch(err) {
+    log("❌ HATA: " + err.message, "err");
+    console.error(err);
+  }
+
+  btn.disabled = false;
+};
+</script>
+</body>
+</html>

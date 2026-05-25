@@ -1,0 +1,117 @@
+MERKEZ 1.4 GÜNCELLEME NOTLARI
+══════════════════════════════════════════════════════════════════
+
+Temel: merkez-1.3
+
+────────────────────────────────────────────────────────────────
+A) merkez-final-merged'den Alınanlar
+────────────────────────────────────────────────────────────────
+
+1. Mesajlaşma retry sistemi (3×):
+   - messaging.js → __msgSend__ fonksiyonu 3x retry döngüsüne alındı.
+   - Exponential backoff: 800ms, 1600ms bekleme.
+   - Gönder butonu işlem süresince devre dışı bırakılır (disable/enable).
+   - 3 denemede başarısız olunursa reportClientError() loglanır.
+
+2. _esc() XSS koruması:
+   - messaging.js → _renderMsgList içinde tüm kullanıcı verisi _esc() ile render edilir.
+   - _esc() 5 karakter (& < > " ') için tam HTML escape uygular.
+
+3. ayak + ciktiSaati alanları:
+   - common.js → sanitizeRez() genişletildi:
+     ayak       (max 40 karakter) — araç/ayak plaka alanı
+     ciktiSaati (sanitizeTime)    — çıkış saati alanı
+
+────────────────────────────────────────────────────────────────
+B) merkez-final-full'dan Alınanlar
+────────────────────────────────────────────────────────────────
+
+4. .gitignore:
+   - config/firebase.js ve config/config.js secret koruması.
+   - IDE, OS, Node dosyaları dahil.
+
+5. config/firebase.js.example:
+   - Onboarding şablonu — gerçek config dosyası olmadan repo klonlanabilir.
+   - Güvenlik notları ve Firebase Auth geçiş yol haritası dahil.
+
+6. __PIANO_API_KEY__ ortam değişkeni pattern'i:
+   - config/config.js → hardcoded API key kaldırıldı.
+   - Build-time injection: GitHub Actions / Cloudflare / Netlify secrets.
+
+7. window._fbAuth global referansı:
+   - firebase-api.js → initFirebase() içinde window._fbAuth = getAuth(app)
+   - signInWithEmailAndPassword geçişinde login sayfaları bu global üzerinden auth yapar.
+
+8. Detaylı güvenlik yorum blokları:
+   - firebase-api.js → initFirebase() içinde anonim auth uyarısı + geçiş yol haritası.
+
+9. Admin PIN → adminPinHash sistemi:
+   - firebase-api.js → PIN sha256 hash olarak ayarlar/adminPinHash yoluna kaydediliyor.
+   - Eski ayarlar/adminPin yolu Firebase rules'da ".write":false ile kapatıldı.
+   - adminPinHash için length===64 validate eklendi (firebase-rules.json).
+   - Otomatik migration: sha256$ prefix (1.3), düz metin ve yeni hash formatı
+     sırayla kontrol edilir; ilk başarılı girişte adminPinHash'e taşınır.
+
+────────────────────────────────────────────────────────────────
+C) Frontend Mimari Refactoru (YENİ)
+────────────────────────────────────────────────────────────────
+
+Her ekran klasörü aşağıdaki yapıya kavuştu:
+
+  admin/
+    components/  modal.js
+    services/    auth-service.js, admin-data-service.js
+    views/       (mevcut admin/index.html orchestrate eder)
+    utils/       admin-utils.js
+
+  hotel/
+    components/  hotel-reservation-card.js
+    services/    hotel-reservation-service.js
+    views/       hotel-panel-view.js
+    utils/       hotel-utils.js
+
+  center/
+    components/  reservation-table.js, toast.js
+    services/    reservation-service.js, hotel-service.js
+    views/       dashboard-view.js
+    utils/       date-utils.js, format-utils.js
+
+  manager/
+    components/  manager-filter.js
+    services/    manager-service.js
+    views/       manager-view.js
+    utils/       manager-utils.js
+
+Entegrasyon notu:
+  Mevcut monolitik HTML sayfaları AYNEN korunmuştur; bu modüller
+  ek <script> etiketleri ile opt-in olarak eklenebilir.
+  window.* global'lere export edildiğinden mevcut HTML'e ek
+  refactor gerekmez. Tam geçiş için HTML sayfaları service/view
+  çağrılarına kademeli olarak taşınabilir.
+
+────────────────────────────────────────────────────────────────
+D) Korunan merkez-1.3 Özellikleri
+────────────────────────────────────────────────────────────────
+
+- listenReservations() realtime listener (tüm ekranlar)
+- backupToday() + cleanupOldBackups(7)
+- validateReservation() + cleanReservationPatch() çift doğrulama
+- firebase-rules-auth-v8-compatible.json + firebase-rules-production-auth.json
+- theme-manager.js + 20 tema görseli
+- reportClientError() + global window.onerror + unhandledrejection
+- safeLogDetails() — PIN/password maskeleme
+- auditLog desteği
+- Tüm ekranlarda listenReservations() realtime akışı
+- FIREBASE_ALLOW_ANONYMOUS_AUTH flag kontrolü
+- Email/Password Auth desteği (signInWithEmailAndPassword)
+
+────────────────────────────────────────────────────────────────
+Sıradaki Adımlar (Önerilen)
+────────────────────────────────────────────────────────────────
+
+1. Firebase Console → Authentication → Email/Password etkinleştir
+2. config/firebase.js.example → config/firebase.js oluştur (git'e commit etme)
+3. Her kullanıcıya roles/{uid}/role ata
+4. firebase-rules-production-auth.json'u Firebase Rules'a yükle
+5. giris/index.html + hotel/login.html → Firebase Auth ile güncelle
+6. Mevcut HTML sayfalarını kademeli olarak component/service yapısına taşı
