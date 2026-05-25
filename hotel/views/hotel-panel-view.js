@@ -30,15 +30,56 @@ const HotelPanelView = (() => {
     const container = document.getElementById("hotelResContainer");
     if (container) container.innerHTML = `<div style="text-align:center;color:var(--text2);padding:20px">Yükleniyor...</div>`;
 
+    // Fallback: getReservations ile tek seferlik yükleme (arsiv dahil)
+    // Realtime listener başarısız olursa veya boş veri dönerse bu çalışır.
+    function _fallbackLoad() {
+      if (typeof getReservations !== "function") return;
+      getReservations(date).then(rows => {
+        const filtered = (rows || []).filter(r =>
+          r.hotel && r.hotel.toLowerCase() === (_hotelName||"").toLowerCase()
+        );
+        _render(filtered);
+      }).catch(err => {
+        if (container) container.innerHTML =
+          `<p style="color:#f87171;text-align:center;padding:20px">⚠️ Veri yüklenemedi. Lütfen sayfayı yenileyin.</p>`;
+        if (typeof reportClientError === "function")
+          reportClientError("HotelPanelView:fallbackLoad", err);
+      });
+    }
+
+    // 8 saniye içinde veri gelmezse fallback'e düş
+    const fallbackTimer = setTimeout(_fallbackLoad, 8000);
+
     _unsubscribe = HotelReservationService.subscribeForHotel(date, _hotelName, rows => {
-      const sorted = HotelUtils.sortByTime(rows);
-      if (container) {
-        HotelReservationCard.renderList(container, sorted, {
-          onEdit:   (r)  => window.editRes   && window.editRes(r),
-          onCancel: (id) => window.cancelRes && window.cancelRes(id),
-          onDelete: (id) => window.deleteRes && window.deleteRes(id),
-        });
+      clearTimeout(fallbackTimer);
+
+      // Realtime listener boş döndüyse ve geçmiş tarihse arsiv olabilir → fallback
+      const today = new Date().toISOString().slice(0, 10);
+      if ((!rows || rows.length === 0) && date < today) {
+        _fallbackLoad();
+        return;
       }
+
+      _render(rows || []);
+    });
+
+    // Realtime abonelik hatası → fallback
+    if (_unsubscribe && typeof _unsubscribe.catch === "function") {
+      _unsubscribe.catch(() => {
+        clearTimeout(fallbackTimer);
+        _fallbackLoad();
+      });
+    }
+  }
+
+  function _render(rows) {
+    const container = document.getElementById("hotelResContainer");
+    if (!container) return;
+    const sorted = HotelUtils.sortByTime(rows);
+    HotelReservationCard.renderList(container, sorted, {
+      onEdit:   (r)  => window.editRes   && window.editRes(r),
+      onCancel: (id) => window.cancelRes && window.cancelRes(id),
+      onDelete: (id) => window.deleteRes && window.deleteRes(id),
     });
   }
 
