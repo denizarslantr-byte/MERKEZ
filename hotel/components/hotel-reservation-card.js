@@ -50,6 +50,7 @@ const HotelReservationCard = (() => {
     // Merkez işlem yaptıysa otel düzenleyemez
     const hasCenterOp = inside || exited ||
       String(r.girdi).toUpperCase()==="TRUE" || String(r.cikti).toUpperCase()==="TRUE" ||
+      String(r.satis||"").toUpperCase()==="TRUE" ||
       [r.staff1,r.staff2,r.staff3,r.staff4,r.ayak,r.plaka,r.kart].some(Boolean);
     const canEdit   = !cancelled && !hasCenterOp;
     const canCancel = !cancelled && !hasCenterOp;
@@ -85,8 +86,6 @@ const HotelReservationCard = (() => {
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
           <span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">🌍 ${_esc(r.nation||"—")}</span>
-          ${r.kart ? `<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">💳 ${_esc(r.kart)}</span>` : ""}
-          ${r.ayak ? `<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:4px 10px;font-size:12px">🚗 ${_esc(r.ayak)}</span>` : ""}
         </div>
         ${r.notes ? `<div class="res-detail" style="font-style:italic;margin-bottom:8px">📝 ${_esc(r.notes)}</div>` : ""}
         <div class="res-actions">${editBtn} ${cancelBtn} ${deleteBtn}</div>

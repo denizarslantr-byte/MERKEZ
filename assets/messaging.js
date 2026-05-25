@@ -17,6 +17,7 @@
   let _unreadInterval = null;
   let _panelOpen = false;
   let _activeTab = "yeni"; // "yeni" | "gelen" | "giden"
+  let _prevUnreadCount = -1; // -1 = ilk yükleme, henüz bildirim tetikleme
 
   // ── Init ──────────────────────────────────────────────────
   window.initMessaging = function(role, identity, displayName) {
@@ -34,6 +35,50 @@
     const s = document.createElement("style");
     s.id = "__msg_style__";
     s.textContent = `
+      @keyframes __msg_shake__ {
+        0%,100%{ transform:scale(1.1) rotate(0deg); }
+        20%    { transform:scale(1.2) rotate(-12deg); }
+        40%    { transform:scale(1.2) rotate(12deg); }
+        60%    { transform:scale(1.2) rotate(-8deg); }
+        80%    { transform:scale(1.2) rotate(8deg); }
+      }
+      @keyframes __msg_notif_in__ {
+        from { opacity:0; transform:translateX(110%); }
+        to   { opacity:1; transform:translateX(0); }
+      }
+      @keyframes __msg_notif_out__ {
+        from { opacity:1; transform:translateX(0); }
+        to   { opacity:0; transform:translateX(110%); }
+      }
+      @keyframes __msg_pulse__ {
+        0%,100%{ box-shadow:0 0 0 0 rgba(214,166,63,.7); }
+        50%    { box-shadow:0 0 0 12px rgba(214,166,63,0); }
+      }
+      #__msgNotif__ {
+        position:fixed; bottom:82px; right:20px; z-index:9100;
+        background:linear-gradient(135deg,#1c1800,#2a2200);
+        border:1.5px solid #d6a63f; border-radius:12px;
+        padding:12px 18px 12px 14px;
+        display:flex; align-items:center; gap:10px;
+        box-shadow:0 6px 24px rgba(0,0,0,.7);
+        font-family:inherit; font-size:13px; color:#f0d080;
+        min-width:220px; max-width:300px;
+        animation:__msg_notif_in__ .35s cubic-bezier(.22,1,.36,1) forwards;
+        cursor:pointer;
+      }
+      #__msgNotif__.hide {
+        animation:__msg_notif_out__ .3s ease forwards;
+      }
+      #__msgNotif__ .__notif_icon__ {
+        font-size:24px; flex-shrink:0;
+        animation:__msg_shake__ .6s ease .1s;
+      }
+      #__msgNotif__ .__notif_close__ {
+        margin-left:auto; background:none; border:none;
+        color:#888; font-size:16px; cursor:pointer; padding:0 0 0 8px;
+        line-height:1; flex-shrink:0;
+      }
+      #__msgNotif__ .__notif_close__:hover { color:#fff; }
       #__msgBtn__ {
         position:fixed; bottom:20px; right:20px; z-index:9000;
         width:52px; height:52px; border-radius:50%;
@@ -318,6 +363,72 @@
     if (btnEl) { btnEl.disabled = false; btnEl.textContent = "MESAJ GÖNDER"; }
   };
 
+  // ── Bildirim sesi (Web Audio API — harici dosya gerektirmez) ──
+  function _playNotifSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [[880, 0, 0.35], [1100, 0.18, 0.35]].forEach(([freq, delay, dur]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        const t = ctx.currentTime + delay;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.28, t + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        osc.start(t);
+        osc.stop(t + dur);
+      });
+    } catch(e) { /* ses desteklenmiyor */ }
+  }
+
+  // ── Animasyonlu bildirim popup'ı ─────────────────────────
+  function _showNotifPopup(count) {
+    const existing = document.getElementById("__msgNotif__");
+    if (existing) existing.remove();
+
+    const el = document.createElement("div");
+    el.id = "__msgNotif__";
+    el.innerHTML = `
+      <span class="__notif_icon__">💬</span>
+      <div>
+        <div style="font-weight:700;font-size:14px">${count} yeni mesaj</div>
+        <div style="font-size:11px;color:#a08030;margin-top:2px">Görmek için tıklayın</div>
+      </div>
+      <button class="__notif_close__" onclick="event.stopPropagation();this.closest('#__msgNotif__').remove()">×</button>
+    `;
+    el.onclick = () => {
+      el.remove();
+      const panel = document.getElementById("__msgPanel__");
+      if (panel) {
+        panel.classList.add("open");
+        // Gelen sekmesine geç
+        const gelenTab = document.querySelector("[data-tab='gelen']");
+        if (gelenTab) gelenTab.click();
+      }
+    };
+    document.body.appendChild(el);
+
+    // 5 saniye sonra otomatik kapat
+    setTimeout(() => {
+      if (!el.parentNode) return;
+      el.classList.add("hide");
+      setTimeout(() => el.remove(), 320);
+    }, 5000);
+  }
+
+  // ── Mesaj butonu sallama animasyonu ──────────────────────
+  function _shakeBtn() {
+    const btn = document.getElementById("__msgBtn__");
+    if (!btn) return;
+    btn.style.animation = "none";
+    void btn.offsetWidth; // reflow
+    btn.style.animation = "__msg_shake__ .6s ease 2, __msg_pulse__ 1.5s ease 3";
+    setTimeout(() => { if (btn) btn.style.animation = ""; }, 5000);
+  }
+
   // ── Okunmamış sayacı ─────────────────────────────────────
   function _startUnreadPoll() {
     _updateBadge();
@@ -329,6 +440,15 @@
       const count = await getUnreadCount(_role, _identity);
       const badge = document.getElementById("__msgBadge__");
       if (!badge) return;
+
+      // Yeni mesaj var mı? (ilk yüklemede tetikleme — _prevUnreadCount === -1)
+      if (_prevUnreadCount >= 0 && count > _prevUnreadCount) {
+        _playNotifSound();
+        _showNotifPopup(count);
+        _shakeBtn();
+      }
+      _prevUnreadCount = count;
+
       if (count > 0) {
         badge.textContent = count > 99 ? "99+" : count;
         badge.style.display = "block";
