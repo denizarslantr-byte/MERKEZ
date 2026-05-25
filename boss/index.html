@@ -122,6 +122,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Aria
         .catch(e=>console.log("PWA hata:",e));
     }
   </script>
+  <link rel="stylesheet" href="../assets/theme-overrides.css">
 </head>
 <body>
 
@@ -357,7 +358,7 @@ function setRange(r){
 async function loadReport(){
   reportOut.innerHTML='<div class="loading">Yükleniyor...</div>';
   const s=rStart.value,e=rEnd.value;
-  const all=(await getReservations()).filter(r=>r.status!=='CANCELLED'&&(!s||r.date>=s)&&(!e||r.date<=e));
+  const all=(await getReservationsRange(s||'2026-01-01',e||new Date().toISOString().slice(0,10))).filter(r=>r.status!=='CANCELLED');
   const grp={};
   all.forEach(r=>(grp[r.hotel||'İsimsiz']??=[]).push(r));
   const totalAll=counts(all);
@@ -403,8 +404,24 @@ async function loadAll(){
 // Bootstrap
 pDate.value=todayStr();
 rStart.value=todayStr(); rEnd.value=todayStr();
-loadAll();
-setInterval(loadAll,20000);
+let patronRezUnsub=null;
+function startPatronRealtime(){
+  if(typeof patronRezUnsub==='function') patronRezUnsub();
+  if(typeof listenReservations==='function'){
+    listenReservations(pDate.value,()=>loadAll()).then(u=>patronRezUnsub=u).catch(()=>loadAll());
+  } else loadAll();
+}
+pDate.addEventListener('change', startPatronRealtime);
+startPatronRealtime();
 </script>
+<script src="../assets/messaging.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof initMessaging === "function") {
+      initMessaging("admin", "admin", "Admin");
+    }
+  });
+</script>
+<script src="../assets/theme-manager.js"></script>
 </body>
 </html>

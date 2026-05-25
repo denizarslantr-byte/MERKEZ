@@ -1,3 +1,68 @@
+
+// ── V10 Güvenlik: Input Sanitize & XSS Önleme ────────────────────
+function sanitizeText(val, maxLen = 300) {
+  if (val === null || val === undefined) return "";
+  return String(val)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#x27;")
+    .trim()
+    .slice(0, maxLen);
+}
+function sanitizeDate(val) {
+  if (!val) return "";
+  const m = String(val).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return "";
+  const [, y, mo, d] = m;
+  if (Number(y) < 2020 || Number(y) > 2099) return "";
+  if (Number(mo) < 1 || Number(mo) > 12) return "";
+  if (Number(d) < 1 || Number(d) > 31) return "";
+  return `${y}-${mo}-${d}`;
+}
+function sanitizeTime(val) {
+  if (!val) return "";
+  const m = String(val).match(/^(\d{2}):(\d{2})$/);
+  if (!m) return "";
+  const [, h, min] = m;
+  if (Number(h) > 23 || Number(min) > 59) return "";
+  return `${h}:${min}`;
+}
+function sanitizeNum(val, min = 0, max = 99) {
+  const n = parseInt(val, 10);
+  if (isNaN(n)) return 0;
+  return Math.min(Math.max(n, min), max);
+}
+function sanitizeRez(rez = {}) {
+  return {
+    ...rez,
+    hotel:      sanitizeText(rez.hotel, 100),
+    notes:      sanitizeText(rez.notes || rez.note || "", 300),
+    note:       sanitizeText(rez.note  || rez.notes || "", 300),
+    nation:     sanitizeText(rez.nation || rez.nat || "", 60),
+    nat:        sanitizeText(rez.nat   || rez.nation || "", 60),
+    staff1:     sanitizeText(rez.staff1 || "", 80),
+    staff2:     sanitizeText(rez.staff2 || "", 80),
+    staff3:     sanitizeText(rez.staff3 || "", 80),
+    staff4:     sanitizeText(rez.staff4 || "", 80),
+    plaka:      sanitizeText(rez.plaka || "", 30),
+    kart:       sanitizeText(rez.kart  || "", 60),
+    status:     sanitizeText(rez.status || "PENDING", 30),
+    ayak:       sanitizeText(rez.ayak  || "", 40),       // araç ayak/plaka alanı
+    ciktiSaati: sanitizeTime(rez.ciktiSaati || ""),      // çıkış saati
+    date:       sanitizeDate(rez.date),
+    time:       sanitizeTime(rez.time),
+    adult:      String(sanitizeNum(rez.adult, 0, 999)),
+    child:      String(sanitizeNum(rez.child, 0, 999))
+  };
+}
+window.sanitizeText = sanitizeText;
+window.sanitizeDate = sanitizeDate;
+window.sanitizeTime = sanitizeTime;
+window.sanitizeNum = sanitizeNum;
+window.sanitizeRez = sanitizeRez;
+
 // Piano Deri V6.1 — Ortak Yardımcılar
 
 function checkApiConfig() {
@@ -159,3 +224,70 @@ const NATION_LIST = [
 function nationOptions(selected = "") {
   return NATION_LIST.map(n => `<option value="${n}"${n===selected?" selected":""}>${n}</option>`).join("");
 }
+
+
+// ── Güvenlik / doğrulama / logging yardımcıları ───────────────
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function safeText(value, maxLen = 500) {
+  return escapeHtml(String(value ?? "").slice(0, maxLen));
+}
+
+function normalizeText(value, maxLen = 500) {
+  return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, maxLen);
+}
+
+function isIsoDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+}
+
+function isTimeHHMM(value) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || ""));
+}
+
+function toIntSafe(value, min = 0, max = 999) {
+  const n = parseInt(value, 10);
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, n));
+}
+
+function getCurrentUserLabel() {
+  try {
+    const u = JSON.parse(sessionStorage.getItem("pianoUser") || "null");
+    if (u && (u.username || u.name || u.role)) return [u.role, u.username || u.name].filter(Boolean).join(":");
+  } catch (e) {}
+  try { return localStorage.getItem("hotel") || "anonim"; } catch (e) { return "anonim"; }
+}
+
+function safeLogDetails(details) {
+  return String(details ?? "")
+    .replace(/password\s*[:=]\s*[^,;\s]+/ig, "password=***")
+    .replace(/pin\s*[:=]\s*[^,;\s]+/ig, "pin=***")
+    .replace(/şifre\s*[:=]\s*[^,;\s]+/ig, "şifre=***")
+    .slice(0, 300);
+}
+
+function reportClientError(scope, err, extra = "") {
+  const message = err && err.message ? err.message : String(err || "Bilinmeyen hata");
+  console.error("[Piano]", scope, err);
+  try {
+    if (typeof logAction === "function") {
+      logAction("CLIENT_ERROR", getCurrentUserLabel(), `${scope}: ${message} ${safeLogDetails(extra)}`);
+    }
+  } catch (e) {}
+}
+
+window.escapeHtml = escapeHtml;
+window.safeText = safeText;
+window.normalizeText = normalizeText;
+window.isIsoDate = isIsoDate;
+window.isTimeHHMM = isTimeHHMM;
+window.toIntSafe = toIntSafe;
+window.reportClientError = reportClientError;

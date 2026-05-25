@@ -11,6 +11,7 @@
     .modal-box { background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:22px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto; }
     .modal-box h3 { color:var(--gold2);margin-top:0; }
   </style>
+  <link rel="stylesheet" href="../assets/theme-overrides.css">
 </head>
 <body>
 <div class="app">
@@ -359,35 +360,38 @@
   </div>
 </div>
 
-<script src="../config/config.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
-<script src="../config/firebase.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
-<script src="../assets/common.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
-<script src="../assets/firebase-api.js?v=20260515-admin-excel-hotel-lock-notif-fix"></script>
+<script src="../config/config.js"></script>
+<script src="../config/firebase.js"></script>
+<script src="../assets/common.js"></script>
+<script src="../assets/firebase-api.js"></script>
+
+<!-- Admin servis & komponent katmanı -->
+<script src="services/auth-service.js"></script>
+<script src="services/admin-data-service.js"></script>
+<script src="components/modal.js"></script>
+<script src="utils/admin-utils.js"></script>
+
 <script>
 showApiWarning();
 
 let logsCache = [], hotelsData = [], adminRaporData = null, adminPerfData = null;
 
-// ── Giriş ──────────────────────────────────────────────────────
+// ── Giriş — AuthService üzerinden ─────────────────────────────
 window.addEventListener("load", () => {
-  if (sessionStorage.getItem("adminAuth") === "ok") { openAdmin(); return; }
-  const pin = localStorage.getItem("adminRemPin");
-  if (pin) { adminPin.value = pin; rememberAdmin.checked = true; }
+  if (AuthService.isLoggedIn()) { openAdmin(); return; }
+  localStorage.removeItem("adminRemPin"); // legacy temizlik
 });
 
 async function adminLogin() {
-  const pin = adminPin.value.trim();
-  if (!pin) return showToast("PIN girin","err");
-  const ok2 = await adminAuth(pin);
-  const r = { success: ok2 };
-  if (r.success) {
-    sessionStorage.setItem("adminAuth","ok");
-    if (rememberAdmin.checked) localStorage.setItem("adminRemPin", pin);
-    else localStorage.removeItem("adminRemPin");
+  const pin = document.getElementById("adminPin").value.trim();
+  if (!pin) return showToast("PIN girin", "err");
+  try {
+    await AuthService.login(pin, false);
     openAdmin();
-  } else {
-    showToast("❌ " + (r.message||"Hatalı PIN"),"err");
-    adminPin.value = "";
+  } catch(e) {
+    showToast("❌ " + (e.message || "Hatalı PIN"), "err");
+    document.getElementById("adminPin").value = "";
+    if (typeof reportClientError === "function") reportClientError("admin:login:fail", e);
   }
 }
 
@@ -398,11 +402,11 @@ function openAdmin() {
 }
 
 function adminLogout() {
-  sessionStorage.removeItem("adminAuth");
-  localStorage.removeItem("adminRemPin");
+  AuthService.logout();
   adminPanel.style.display = "none";
   pinSection.style.display = "block";
-  adminPin.value = ""; rememberAdmin.checked = false;
+  document.getElementById("adminPin").value = "";
+  if (document.getElementById("rememberAdmin")) document.getElementById("rememberAdmin").checked = false;
 }
 
 // ── Tab ────────────────────────────────────────────────────────
@@ -863,8 +867,7 @@ async function changePin() {
   if (!old||!n1||!n2) { pinFeedback.innerHTML='<div class="notice">Tüm alanları doldurun.</div>'; return; }
   if (n1 !== n2)       { pinFeedback.innerHTML='<div class="notice">Yeni PIN\'ler eşleşmiyor.</div>'; return; }
   if (n1.length < 4)   { pinFeedback.innerHTML='<div class="notice">PIN en az 4 karakter olmalı.</div>'; return; }
-  const currentPin = await getPin();
-  if (String(old) !== String(currentPin)) {
+  if (!(await adminAuth(old))) {
     showToast("❌ Mevcut PIN hatalı","err"); return;
   }
   await setPin(n1);
@@ -1075,7 +1078,7 @@ window.importBaslat = async () => {
   log.innerHTML = '';
 
   function addLog(msg, color = 'var(--text2)') {
-    log.innerHTML += `<span style="color:${color}">${msg}</span>\n`;
+    log.innerHTML += `<span style="color:${color}">${escapeHtml(msg)}</span>\n`;
     log.scrollTop = log.scrollHeight;
   }
   function updCards() {
@@ -1111,7 +1114,7 @@ window.importBaslat = async () => {
         _importedAt: new Date().toISOString()
       };
       try {
-        await fbSet(`rezervasyonlar/${id}`, rec);
+        await addReservation(rec);
         r._st === 'warn' ? warns++ : ok++;
         if (i % 25 === 0 || i === data.length - 1)
           addLog(`✓ [${i+1}/${total}] ${r.date} ${r.time} — ${r.hotel}`, '#bbf7d0');
@@ -1171,5 +1174,14 @@ window.importOnizlemeIndir = () => {
 };
 
 </script>
+<script src="../assets/messaging.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof initMessaging === "function") {
+      initMessaging("admin", "admin", "Admin");
+    }
+  });
+</script>
+<script src="../assets/theme-manager.js"></script>
 </body>
 </html>

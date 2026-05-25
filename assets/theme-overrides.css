@@ -1,0 +1,40 @@
+
+/* Piano Deri Global Tema Uyum Katmanı */
+html[data-piano-theme] body{
+  background:var(--bg)!important;color:var(--text)!important;transition:background .25s ease,color .25s ease;
+}
+html[data-piano-theme] .panel-card,
+html[data-piano-theme] .panel,
+html[data-piano-theme] .card,
+html[data-piano-theme] .modal-box,
+html[data-piano-theme] .hdr,
+html[data-piano-theme] header{
+  background:var(--card)!important;border-color:var(--border)!important;color:var(--text)!important;
+}
+html[data-piano-theme] input,
+html[data-piano-theme] select,
+html[data-piano-theme] textarea{
+  background:var(--bg2)!important;border-color:var(--border)!important;color:var(--text)!important;
+}
+html[data-piano-theme] table th{background:var(--bg2)!important;color:var(--gold2)!important;border-color:var(--border)!important}
+html[data-piano-theme] table td{border-color:rgba(255,255,255,.08)!important;color:var(--text)!important}
+html[data-piano-theme] .app-brand .p,
+html[data-piano-theme] .brand .p,
+html[data-piano-theme] .brand .s,
+html[data-piano-theme] label,
+html[data-piano-theme] h1,
+html[data-piano-theme] h2,
+html[data-piano-theme] h3{color:var(--gold2)!important}
+html[data-piano-theme] .btn-gold,
+html[data-piano-theme] button.btn-gold{
+  background:linear-gradient(135deg,var(--gold),var(--gold2))!important;color:#111!important;border-color:var(--gold)!important;
+}
+html[data-piano-theme] .tab-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold2))!important;color:#111!important;border-color:var(--gold)!important}
+html[data-piano-theme] .tab-btn,
+html[data-piano-theme] .btn-dark{background:var(--bg3)!important;color:var(--text)!important;border-color:var(--border)!important}
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:14px}
+.theme-card{padding:8px;border:1px solid var(--border);background:var(--bg3);border-radius:14px;cursor:pointer;color:var(--text);text-align:left;box-shadow:0 8px 22px rgba(0,0,0,.18);transition:transform .15s ease,border-color .15s ease}
+.theme-card:hover{transform:translateY(-2px);border-color:var(--gold)}
+.theme-card img{width:100%;height:92px;object-fit:cover;border-radius:10px;border:1px solid rgba(255,255,255,.08);display:block;margin-bottom:8px}
+.theme-card span{display:block;font-size:13px;font-weight:800;color:var(--gold2);line-height:1.25}
+.theme-card small{display:block;color:var(--text2);font-size:11px;margin-top:4px;line-height:1.25}

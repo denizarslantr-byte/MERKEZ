@@ -39,6 +39,7 @@
   <meta name="apple-mobile-web-app-title" content="Piano Deri">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}</script>
+  <link rel="stylesheet" href="../assets/theme-overrides.css">
 </head>
 <body>
 <div class="app">
@@ -135,7 +136,7 @@ function updateDateDisplay() {
   selectedDateLabel.innerText = fmtDate(datePicker.value);
 }
 updateDateDisplay();
-datePicker.addEventListener("change", () => { updateDateDisplay(); });
+datePicker.addEventListener("change", () => { updateDateDisplay(); startBossRealtime(); });
 document.getElementById("topHotelFilter")?.addEventListener("change", renderReservations);
 
 // ── Veri ──────────────────────────────────────────────────────
@@ -301,8 +302,23 @@ function renderReservations() {
 }
 
 // ── Bootstrap ──────────────────────────────────────────────────
-loadAll();
-setInterval(() => { loadAll(); }, 15000);
+let bossRezUnsub=null;
+function startBossRealtime(){
+  if(typeof bossRezUnsub==='function') bossRezUnsub();
+  if(typeof listenReservations==='function'){
+    listenReservations(datePicker.value,()=>loadAll()).then(u=>bossRezUnsub=u).catch(()=>loadAll());
+  } else loadAll();
+}
+startBossRealtime();
 </script>
+<script src="../assets/messaging.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof initMessaging === "function") {
+      initMessaging("admin", "admin", "Admin");
+    }
+  });
+</script>
+<script src="../assets/theme-manager.js"></script>
 </body>
 </html>

@@ -1,0 +1,29 @@
+// Piano Deri — Firebase Konfigürasyon Şablonu
+// ─────────────────────────────────────────────────────────────
+// Bu dosyayı kopyalayın: cp config/firebase.js.example config/firebase.js
+// Ardından gerçek değerleri Firebase Console'dan alın:
+//   Firebase Console → Proje Ayarları → Genel → Web Uygulaması → firebaseConfig
+// ─────────────────────────────────────────────────────────────
+// ⚠️  config/firebase.js dosyasını Git'e COMMIT ETMEYİN.
+//     .gitignore zaten bu dosyayı koruma altına almıştır.
+// ─────────────────────────────────────────────────────────────
+
+const FIREBASE_CONFIG = {
+  apiKey:            "BURAYA_API_KEY",
+  authDomain:        "PROJE_ADI.firebaseapp.com",
+  databaseURL:       "https://PROJE_ADI-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "PROJE_ADI",
+  storageBucket:     "PROJE_ADI.firebasestorage.app",
+  messagingSenderId: "BURAYA_MESSAGING_SENDER_ID",
+  appId:             "BURAYA_APP_ID"
+};
+
+const ADMIN_PIN_KEY = "adminPin";
+const DEFAULT_PIN   = "BASLANGIC_PIN_KODUNUZ"; // İlk girişten sonra admin panelinden değiştirin
+
+// ─────────────────────────────────────────────────────────────
+// FIREBASE AUTH NOTU:
+// Üretimde FIREBASE_ALLOW_ANONYMOUS_AUTH = false tutun.
+// Anonim auth yalnızca lokal test içindir.
+// Gerçek üretim için firebase-rules-production-auth.json + Email/Password Auth kullanın.
+// ─────────────────────────────────────────────────────────────

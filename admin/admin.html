@@ -31,6 +31,7 @@
   <meta name="apple-mobile-web-app-title" content="Piano Deri">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}</script>
+  <link rel="stylesheet" href="../assets/theme-overrides.css">
 </head>
 <body>
 <div class="app">
@@ -75,6 +76,7 @@
       <button id="tab6" class="tab-btn"        onclick="openTab(6)" style="background:linear-gradient(135deg,rgba(160,120,48,.4),rgba(241,212,138,.15));border-color:var(--gold)">📥 Admin Raporları</button>
       <button id="tab7" class="tab-btn"        onclick="openTab(7);loadUsers()">👤 Kullanıcılar</button>
       <button id="tab8" class="tab-btn"        onclick="openTab(8)">📥 İçe Aktar</button>
+      <button id="tab9" class="tab-btn"        onclick="openTab(9);PianoTheme.renderThemeAdmin()">🎨 Tema</button>
     </div>
 
     <!-- TAB 1: Oteller -->
@@ -209,6 +211,21 @@
         <button class="btn-gold" onclick="changePin()">PIN'i Değiştir</button>
         <div id="pinFeedback" style="margin-top:12px"></div>
       </div>
+
+      <div class="panel-card" style="max-width:480px;margin-top:16px">
+        <h3 style="color:var(--gold2);margin-top:0">🗄 Rezervasyon Arşivleme</h3>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:12px">
+          Seçilen tarihten önceki rezervasyonları <code>arsiv/{ay}/</code> klasörüne taşır.
+          Arşivlenmiş kayıtlar rapor sorgularında hâlâ görünür, aktif sorgularda yer almaz.
+        </p>
+        <div style="margin-bottom:12px">
+          <label>Bu tarihten öncekileri arşivle</label>
+          <input type="date" id="archiveBeforeDate" style="width:100%;margin-top:4px">
+        </div>
+        <button class="btn-gold" onclick="doArchive()">🗄 Arşivle</button>
+        <div id="archiveFeedback" style="margin-top:12px;font-size:13px"></div>
+      </div>
+
     </div>
 
     <!-- TAB 6: Admin Raporları (1-8) -->
@@ -275,6 +292,16 @@
     </div>
 
     <!-- TAB 8: İÇE AKTAR -->
+    <div id="tabContent9" style="display:none">
+      <div class="panel-card">
+        <h2 style="margin-top:0;color:var(--gold2)">🎨 Global Tema Seçimi</h2>
+        <p style="color:var(--text2);font-size:13px;line-height:1.6;margin-top:0">
+          Buradan seçilen tema Firebase'e kaydedilir. Admin, otel, bölgeci, merkez, boss ve patron ekranları aynı temayı otomatik kullanır.
+        </p>
+        <div id="themeGrid" class="theme-grid"></div>
+      </div>
+    </div>
+
     <div id="tabContent8" style="display:none">
       <div class="panel-card">
         <h3 style="color:var(--gold2);margin-top:0">📥 Rezervasyon İçe Aktar (Excel / CSV)</h3>
@@ -358,7 +385,7 @@ function openAdmin() {
 
 // ── Tab ────────────────────────────────────────────────────────
 function openTab(n) {
-  [1,2,3,4,5,6,7,8].forEach(i => {
+  [1,2,3,4,5,6,7,8,9].forEach(i => {
     document.getElementById("tabContent"+i).style.display = i===n?"block":"none";
     document.getElementById("tab"+i).classList.toggle("active", i===n);
   });
@@ -587,7 +614,7 @@ async function fillAdminReportFilters() {
       const names = [...new Set((ps||[]).map(x=>x.plaka).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
       aRPlaka.innerHTML = '<option value="">Plaka: Tümü</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join("");
     }
-  } catch(e) {}
+  } catch(e) { if (typeof reportClientError === "function") reportClientError("admin-load-filters", e); }
 }
 
 function renderHotels() {
@@ -1180,8 +1207,7 @@ async function changePin() {
   if (!old||!n1||!n2) { pinFeedback.innerHTML='<div class="notice">Tüm alanları doldurun.</div>'; return; }
   if (n1 !== n2)       { pinFeedback.innerHTML='<div class="notice">Yeni PIN\'ler eşleşmiyor.</div>'; return; }
   if (n1.length < 4)   { pinFeedback.innerHTML='<div class="notice">PIN en az 4 karakter olmalı.</div>'; return; }
-  const currentPin = await getPin();
-  if (String(old) !== String(currentPin)) {
+  if (!(await adminAuth(old))) {
     showToast("❌ Mevcut PIN hatalı","err"); return;
   }
   await setPin(n1);
@@ -1401,6 +1427,31 @@ window.addEventListener("DOMContentLoaded",()=>{
     document.getElementById("r6End").value   = todayStr();
   }
 });
+
+// ── Arşivleme ─────────────────────────────────────────────────
+async function doArchive() {
+  const d = document.getElementById("archiveBeforeDate").value;
+  if (!d) { showToast("Tarih seçin","err"); return; }
+  const fb = document.getElementById("archiveFeedback");
+  fb.innerHTML = "<span style='color:#888'>Arşivleniyor...</span>";
+  try {
+    const result = await archiveOldReservations(d);
+    fb.innerHTML = `<span style='color:#22c55e'>✅ ${result.moved} rezervasyon arşivlendi.</span>`;
+    showToast("✅ Arşivleme tamamlandı");
+  } catch(e) {
+    fb.innerHTML = `<span style='color:#ef4444'>❌ Hata: ${e.message}</span>`;
+  }
+}
+
 </script>
+<script src="../assets/messaging.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof initMessaging === "function") {
+      initMessaging("admin", "admin", "Admin");
+    }
+  });
+</script>
+<script src="../assets/theme-manager.js"></script>
 </body>
 </html>

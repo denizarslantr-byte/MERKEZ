@@ -1,0 +1,125 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rezervasyonlar": {
+      "$date": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('roles').child(auth.uid).child('role').val() === 'admin' || root.child('roles').child(auth.uid).child('role').val() === 'merkez' || root.child('roles').child(auth.uid).child('role').val() === 'otel')",
+        ".indexOn": [
+          "hotel",
+          "status",
+          "time"
+        ],
+        ".validate": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/)",
+        "$id": {
+          ".validate": "newData.hasChildren(['id','date','time','hotel']) && newData.child('date').val() === $date && newData.child('time').val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/) && newData.child('hotel').val().length > 0 && newData.child('hotel').val().length <= 120"
+        }
+      }
+    },
+    "arsiv": {
+      "$month": {
+        ".read": "auth != null && (root.child('roles').child(auth.uid).child('role').val() === 'admin' || root.child('roles').child(auth.uid).child('role').val() === 'merkez' || root.child('roles').child(auth.uid).child('role').val() === 'patron')",
+        ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'"
+      }
+    },
+    "mesajlar": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "fromRole",
+        "toRole",
+        "tarih",
+        "okundu",
+        "createdAt"
+      ],
+      "$id": {
+        ".validate": "newData.hasChildren(['id','from','fromRole','to','toRole','text','createdAt','okundu']) && newData.child('text').val().length > 0 && newData.child('text').val().length <= 1000"
+      }
+    },
+    "oteller": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": [
+        "code",
+        "status",
+        "hotel"
+      ]
+    },
+    "personel": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": [
+        "name",
+        "status"
+      ]
+    },
+    "kullanicilar": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "izinler": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('roles').child(auth.uid).child('role').val() === 'admin' || root.child('roles').child(auth.uid).child('role').val() === 'merkez')",
+      ".indexOn": [
+        "personel",
+        "tarih"
+      ]
+    },
+    "plakalar": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('roles').child(auth.uid).child('role').val() === 'admin' || root.child('roles').child(auth.uid).child('role').val() === 'merkez')"
+    },
+    "logs": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null"
+    },
+    "ayarlar": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      "tema": {
+        ".validate": "newData.isString() || newData.hasChild('id')"
+      }
+    },
+    "roles": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "system": {
+      "theme": {
+        ".read": true,
+        ".write": true,
+        "id": {
+          ".validate": "newData.isString() && newData.val().matches(/^tema_[0-9]{2}_[a-zA-Z0-9_çğıöşüÇĞİÖŞÜ-]+$/)"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "updatedAt": {
+          ".validate": "newData.isString()"
+        },
+        "updatedBy": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "audit": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null"
+    },
+    "yedek": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('roles').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "fcmTokens": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "hotelName"
+      ]
+    }
+  }
+}

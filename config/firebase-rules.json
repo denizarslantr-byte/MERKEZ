@@ -1,0 +1,150 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rezervasyonlar": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$date": {
+        ".validate": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/)",
+        ".indexOn": [
+          "hotel",
+          "status",
+          "time"
+        ],
+        "$id": {
+          ".validate": "newData.hasChildren(['id','date','time','hotel']) && newData.child('date').val() === $date && newData.child('time').isString() && newData.child('time').val().matches(/^([01][0-9]|2[0-3]):[0-5][0-9]$/) && newData.child('hotel').isString() && newData.child('hotel').val().length > 0 && newData.child('hotel').val().length <= 120"
+        }
+      }
+    },
+    "arsiv": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$month": {
+        ".validate": "$month.matches(/^\\d{4}-\\d{2}$/)",
+        ".indexOn": [
+          "date",
+          "hotel",
+          "status"
+        ]
+      }
+    },
+    "mesajlar": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "fromRole",
+        "toRole",
+        "tarih",
+        "okundu",
+        "createdAt"
+      ],
+      "$id": {
+        ".validate": "newData.hasChildren(['id','from','fromRole','to','toRole','text','createdAt','okundu']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 1000"
+      }
+    },
+    "oteller": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "code",
+        "status",
+        "hotel"
+      ],
+      "$id": {
+        ".validate": "newData.hasChildren(['hotel']) && newData.child('hotel').isString() && newData.child('hotel').val().length > 0 && newData.child('hotel').val().length <= 120"
+      }
+    },
+    "personel": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "name",
+        "status"
+      ],
+      "$id": {
+        ".validate": "newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 120"
+      }
+    },
+    "kullanicilar": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "username",
+        "status"
+      ]
+    },
+    "izinler": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "personel",
+        "tarih"
+      ]
+    },
+    "plakalar": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "plaka",
+        "status"
+      ]
+    },
+    "fcmTokens": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "hotelName"
+      ]
+    },
+    "logs": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": [
+        "date",
+        "action",
+        "user"
+      ]
+    },
+    "audit": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "yedek": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "ayarlar": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "adminPinHash": {
+        ".validate": "newData.isString() && newData.val().length === 64"
+      },
+      "adminPin": {
+        ".read": false,
+        ".write": false
+      }
+    },
+    "system": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "theme": {
+        "id": {
+          ".validate": "newData.isString() && newData.val().matches(/^tema_[0-9]{2}_[a-zA-Z0-9_çğıöşüÇĞİÖŞÜ-]+$/)"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "updatedAt": {
+          ".validate": "newData.isString()"
+        },
+        "updatedBy": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
