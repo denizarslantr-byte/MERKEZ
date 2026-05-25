@@ -189,7 +189,7 @@ async function saveReservation() {
   });
   try {
     if (id) {
-      await updateReservation(date, id, body);
+      await updateReservation(id, { ...body, date });   // ← düzeltildi: (id, data) imzası
       showToast("✅ Rezervasyon güncellendi");
     } else {
       await addReservation(body);
@@ -222,7 +222,7 @@ window.editRes = function(r) {
 window.cancelRes = async function(id) {
   if (!confirm("Bu rezervasyon iptal edilsin mi?")) return;
   try {
-    await updateReservation(currentDate, id, { status: "CANCELLED" });
+    await updateReservation(id, { date: currentDate, status: "CANCELLED" });  // ← düzeltildi
     showToast("Rezervasyon iptal edildi");
   } catch(e) {
     showToast("İptal başarısız", "err");
@@ -233,7 +233,7 @@ window.cancelRes = async function(id) {
 window.deleteRes = async function(id) {
   if (!confirm("Bu rezervasyon tamamen silinsin mi? Bu işlem geri alınamaz.")) return;
   try {
-    await deleteReservation(currentDate, id);
+    await deleteReservation(id);   // ← düzeltildi: (id) imzası, tarih dahili bulunur
     showToast("Rezervasyon silindi");
   } catch(e) {
     showToast("Silme başarısız", "err");
