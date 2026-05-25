@@ -55,11 +55,15 @@ const ReservationTable = (() => {
   // Callback kayıt — html onclick'ten erişmek için
   const _callbacks = {};
   function _register(key, fn) { _callbacks[key] = fn; }
-  ReservationTable._edit = (id) => _callbacks.onEdit  && _callbacks.onEdit(id);
-  ReservationTable._del  = (id) => _callbacks.onDelete && _callbacks.onDelete(id);
-  ReservationTable._arch = (id) => _callbacks.onArchive && _callbacks.onArchive(id);
 
-  return { render, _register };
+  // _edit/_del/_arch burada closure içinde tanımlanır: TDZ yok, _callbacks erişilebilir
+  return {
+    render,
+    _register,
+    _edit:  (id) => _callbacks.onEdit    && _callbacks.onEdit(id),
+    _del:   (id) => _callbacks.onDelete  && _callbacks.onDelete(id),
+    _arch:  (id) => _callbacks.onArchive && _callbacks.onArchive(id),
+  };
 })();
 
 window.ReservationTable = ReservationTable;
