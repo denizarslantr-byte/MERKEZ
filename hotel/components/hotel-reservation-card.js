@@ -42,8 +42,11 @@ const HotelReservationCard = (() => {
     const cancelled = r.status === "CANCELLED";
     const totalPax  = (Number(r.adult)||0) + (Number(r.child)||0);
 
-    // Otel panelinde satış bilgisi görünmez ve tek başına kilitleme sebebi değildir.
-    // Kilitleme sadece gerçek merkez operasyonlarında olur: giriş, çıkış, personel, araç/plaka, kart.
+    // Satış ayrı bir durumdur: otelde görünür; tek başına "Merkez işlem yaptı" kilidi sayılmaz.
+    const hasSale = String(r.satis || "").toUpperCase() === "TRUE";
+
+    // Merkez giriş/çıkış/personel/araç/kart işlemi yaptıysa otel düzenleyemez.
+    // NOT: r.satis burada özellikle yok; satış kutucuğu otel panelinde sadece bilgi olarak gösterilir.
     const hasCenterOp = inside || exited ||
       String(r.girdi).toUpperCase()==="TRUE"  ||
       String(r.cikti).toUpperCase()==="TRUE"  ||
@@ -66,7 +69,7 @@ const HotelReservationCard = (() => {
     const cancelBtn = canCancel ? `<button class="btn-red  btn-sm" onclick="HotelReservationCard._cancel('${_esc(r.id)}')">❌ İptal</button>` : "";
     const deleteBtn = canDelete
       ? `<button class="btn-red btn-sm" style="background:rgba(80,0,0,.9)" onclick="HotelReservationCard._delete('${_esc(r.id)}')">🗑 Sil</button>`
-      : "";
+      : `<span class="badge entered">🔒 Merkez işlem yaptı</span>`;
 
     return `
       <div class="res-card" style="border-left:4px solid ${borderColor};${cancelled?"opacity:.55":""}">
@@ -75,7 +78,10 @@ const HotelReservationCard = (() => {
             <div class="res-time">${_esc(r.time)}</div>
             <div style="font-size:11px;color:var(--text2)">${_esc(r.date)}</div>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${statusEl}</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            ${hasSale ? '<span class="badge entered">💰 SATIŞ VAR</span>' : ''}
+            ${statusEl}
+          </div>
         </div>
         <div style="font-size:14px;font-weight:700;margin-bottom:8px">
           👤 ${totalPax} kişi

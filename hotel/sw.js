@@ -1,5 +1,5 @@
-// Piano Hotel SW v3 — clone() sırası düzeltildi
-const CACHE = 'piano-hotel-v4-hotel-satis-fix-2';
+// Piano Hotel SW v4 — clone() sırası düzeltildi
+const CACHE = 'piano-hotel-v4-satis';
 const URLS = [
   '/hotel/mobile-hotel-panel.html',
   '/assets/piano-theme.css',
@@ -9,7 +9,7 @@ const URLS = [
   '/config/config.js',
   '/config/firebase.js',
   '/hotel/services/hotel-reservation-service.js',
-  '/hotel/components/hotel-reservation-card.js',
+  '/hotel/components/hotel-reservation-card.js?v=satis-fix-4',
   '/hotel/utils/hotel-utils.js',
   '/hotel/views/hotel-panel-view.js'
 ];
