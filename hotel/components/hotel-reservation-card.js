@@ -42,11 +42,12 @@ const HotelReservationCard = (() => {
     const cancelled = r.status === "CANCELLED";
     const totalPax  = (Number(r.adult)||0) + (Number(r.child)||0);
 
-    // Merkez işlem yaptıysa otel düzenleyemez
+    // Merkez işlem yaptıysa otel düzenleyemez.
+    // DİKKAT: "satis" sadece merkez ekranının iç operasyon bilgisidir.
+    // Otel panelinde satış görünmemeli ve tek başına "merkez işlem yaptı" sayılmamalı.
     const hasCenterOp = inside || exited ||
       String(r.girdi).toUpperCase()==="TRUE"  ||
       String(r.cikti).toUpperCase()==="TRUE"  ||
-      String(r.satis||"").toUpperCase()==="TRUE" ||
       [r.staff1,r.staff2,r.staff3,r.staff4,r.ayak,r.plaka,r.kart].some(Boolean);
 
     const canEdit   = !cancelled && !hasCenterOp;
